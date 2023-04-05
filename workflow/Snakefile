@@ -8,8 +8,10 @@
 # separate licenses may apply)                          #
 # ----------------------------------------------------- #
 
-# print configuration parameters
+
+# load and print configuration
 # -----------------------------------------------------
+configfile: "config/config.yml"
 print("\n +++ WORKFLOW PARAMETERS +++ \n")
 for i in config.keys():
     print(f"  - {i}: {config.get(i)}")
