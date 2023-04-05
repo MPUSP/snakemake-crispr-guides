@@ -1,0 +1,6 @@
+output:
+  path: "results"
+
+get_genome:
+  term: "GCF_000009045.1"
+  database: "NCBI"

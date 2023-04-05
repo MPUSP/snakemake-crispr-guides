@@ -1,0 +1,77 @@
+# ----------------------------------------------------- #
+# A Snakemake workflow for the design of small guide    #
+# RNAs (sgRNAs) for CRISPR applications.                #
+#                                                       #
+# Author: Michael Jahn                                  #
+# Date: 2023-04-04                                      #
+# License: GPL v3 (for all 3rd party tools              #
+# separate licenses may apply)                          #
+# ----------------------------------------------------- #
+
+# import basic packages
+from os import path
+
+
+# check command line arguments
+# -----------------------------------------------------
+print("\n +++ SNAKEMAKE GLOBAL PARAMETERS +++ \n")
+for i in config.keys():
+    print(f"  - {i}: {config.get(i)}")
+print("\n")
+
+
+# function to construct target paths
+def out(file):
+    return os.path.join(config["output"]["path"], file)
+
+
+# target rule
+# -----------------------------------------------------
+rule all:
+    input:
+        out("versions/log_env.txt"),
+        out("module_logs/log.txt"),
+
+
+# module to fetch genome from NCBI or Ensemble
+# -----------------------------------------------------
+rule get_genome:
+    params:
+        term=config["get_genome"]["term"],
+        database=config["get_genome"]["database"],
+    output:
+        path=directory(out("get_genome")),
+    conda:
+        "envs/get_genome.yml"
+    log:
+        path=out("get_genome/log.txt"),
+    script:
+        "scripts/get_genome.py"
+
+
+# module to combine all module log files to single log
+# -----------------------------------------------------
+rule module_logs:
+    input:
+        rules.get_genome.log.path,
+    log:
+        path=out("module_logs/log.txt"),
+    shell:
+        "cat {input} >> {log.path}"
+
+
+# module to fetch software versions from conda envs
+# -----------------------------------------------------
+rule versions:
+    input:
+        expand(
+            "workflow/envs/{module}.yml",
+            module=["get_genome"],
+        ),
+    output:
+        path=out("versions/log_packages.txt"),
+    log:
+        path=out("versions/log_env.txt"),
+    shell:
+        "conda env export > {log.path};"
+        "cat {input} >> {output.path}"
