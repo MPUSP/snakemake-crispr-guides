@@ -8,21 +8,17 @@
 # separate licenses may apply)                          #
 # ----------------------------------------------------- #
 
-# import basic packages
-from os import path
-
-
-# check command line arguments
+# print configuration parameters
 # -----------------------------------------------------
-print("\n +++ SNAKEMAKE GLOBAL PARAMETERS +++ \n")
+print("\n +++ WORKFLOW PARAMETERS +++ \n")
 for i in config.keys():
     print(f"  - {i}: {config.get(i)}")
-print("\n")
+print("\n +++++++++++++++++++++++++++ \n")
 
 
-# function to construct target paths
-def out(file):
-    return os.path.join(config["output"]["path"], file)
+# load rules
+# -----------------------------------------------------
+include: "rules/common.smk"
 
 
 # target rule
@@ -54,6 +50,8 @@ rule get_genome:
 rule module_logs:
     input:
         rules.get_genome.log.path,
+    conda:
+        "envs/basic.yml"
     log:
         path=out("module_logs/log.txt"),
     shell:
@@ -70,6 +68,8 @@ rule versions:
         ),
     output:
         path=out("versions/log_packages.txt"),
+    conda:
+        "envs/basic.yml"
     log:
         path=out("versions/log_env.txt"),
     shell:
