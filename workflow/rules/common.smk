@@ -4,7 +4,10 @@ from os import listdir
 
 # construct target paths
 def out(file):
-    return os.path.join(config["output"]["path"], file)
+    return path.join(config["output"]["path"], file)
+
+def wfpath(file):
+    return path.join(workflow.basedir, file)
 
 # print input parameters
 def print_params(config):
