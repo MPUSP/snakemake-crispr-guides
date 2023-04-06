@@ -9,18 +9,15 @@
 # ----------------------------------------------------- #
 
 
-# load and print configuration
-# -----------------------------------------------------
-configfile: "config/config.yml"
-print("\n +++ WORKFLOW PARAMETERS +++ \n")
-for i in config.keys():
-    print(f"  - {i}: {config.get(i)}")
-print("\n +++++++++++++++++++++++++++ \n")
-
-
 # load rules
 # -----------------------------------------------------
 include: "rules/common.smk"
+
+
+# load and print configuration
+# -----------------------------------------------------
+configfile: path.join(workflow.basedir, "../config/config.yml")
+print_params(config)
 
 
 # target rule
@@ -35,8 +32,10 @@ rule all:
 # -----------------------------------------------------
 rule get_genome:
     params:
-        term=config["get_genome"]["term"],
         database=config["get_genome"]["database"],
+        assembly=config["get_genome"]["assembly"],
+        fasta=config["get_genome"]["fasta"],
+        gff=config["get_genome"]["gff"],
     output:
         path=directory(out("get_genome")),
     conda:

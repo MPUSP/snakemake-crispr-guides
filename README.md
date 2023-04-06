@@ -37,7 +37,7 @@ If you use this workflow in a paper, don't forget to give credits to the author(
 
 ---
 
-This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to the even simpler web resources, such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
+This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to even simpler web resources such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
 
 This workflow relies to a large degree on the underlying [Bioconductor package ecosystem `crisprVerse`](http://bioconductor.org/packages/release/bioc/html/crisprVerse.html), published in 2022 by:
 
@@ -45,9 +45,13 @@ This workflow relies to a large degree on the underlying [Bioconductor package e
 
 The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stable/) and consists of the following steps:
 
-1. TODO: Obtain genome database from NCBI or use user-supplied fasta file (`python`, [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/))
-2. Step 2
-3. Step 3
+1. Obtain genome database in `fasta` and `gff` format (`python`, [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/))
+   1. Using automatic download from NCBI with a `RefSeq` ID
+   2. Using user-supplied files
+2. Find all possible guide RNAs for the given sequence, with many options for customization (`R`, `crisprVerse`)
+3. Collect on-target and off-target scores (`R`, `crisprVerse`, `Bowtie2`)
+4. Filter and rank guide RNAs based on scores and return final list (`R`, `crisprVerse`)
+5. Generate report with overview figures and statistics (`R markdown`)
 
 If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
 
@@ -114,11 +118,11 @@ BiocManager::install("GenomeInfoDbData")
 
 ### Input data
 
-The workflow requires the following input files:
+The workflow requires the following input:
 
-1. a genome
-2. an (organism) database in `*.fasta` format _OR_ a NCBI Refseq ID. Decoys (`rev_` prefix) will be added if necessary
-3.
+1. An NCBI Refseq ID, e.g. `GCF_000006945.2`. Find your genome assembly and ID on [NCBI genomes](https://www.ncbi.nlm.nih.gov/data-hub/genome/)
+2. OR use a custom pair of `*.fasta` file and `*.gff` file that describe the genome of choice
+
 
 ### Execution
 
@@ -128,24 +132,24 @@ To run the workflow from command line, change the working directory.
 cd /path/to/snakemake-crispr-guides
 ```
 
-Adjust the global and module-specific options in the config file under `config/config.yml`.
+Adjust the global and module-specific options in the default config file `config/config.yml`.
 Before running the entire workflow, you can perform a dry run using:
 
 ```
-snakemake --configfile 'config/config.yml' --dry-run
+snakemake --dry-run
 ```
 
 To run the complete workflow with test files, execute the following command. The definition of the number of compute cores is mandatory.
 
 ```
-snakemake --configfile 'config/config.yml' --cores 10 --use-conda
+snakemake --cores 10 --use-conda
 ```
 
-To supply options that override the defaults, run the workflow like this:
+To supply a custom config file and/or use options that override the defaults, run the workflow like this:
 
 ```
 snakemake --cores 10 --use-conda \
-  --configfile 'config/config.yml' \
+  --configfile 'config/my_config.yml' \
   --config \
   option='input'
 ```
@@ -154,19 +158,24 @@ snakemake --cores 10 --use-conda \
 
 This table lists all parameters that can be used to run the workflow.
 
-| parameter | type                     | details         | example                                         |
-| --------- | ------------------------ | --------------- | ----------------------------------------------- |
-| genome    | `*.genbank` OR refseq ID | plain text      | `test/input/genome/test.gbk`, `GCF_000009045.1` |
-| output    | path                     | valid directory | `test/output/`                                  |
+| parameter   | type      | details          | example                   |
+| ----------- | --------- | ---------------- | ------------------------- |
+| output/path | path      | results dir      | `test/output/`            |
+| database    | character | `ncbi`, `manual` | `manual`                  |
+| assembly    | character | RefSeq ID        | `GCF_000006945.2`         |
+| fasta       | path      | input file       | `test/input/mygenome.fa`  |
+| gff         | path      | input file       | `test/input/mygenome.gff` |
+
 
 ## Output
 
 The workflow generates the following output from its modules:
 
 <details markdown="1">
-<summary>output</summary>
+<summary>get_genome</summary>
 
-- `file.txt`: An example file
+- `genome.fasta`: Supplied or downloaded fasta file
+- `genome.gff`: Supplied or downloaded gff file
 - `log.txt`: Log file for this module
 
 </details>

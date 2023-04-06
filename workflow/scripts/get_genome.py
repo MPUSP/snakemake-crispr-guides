@@ -3,27 +3,62 @@
 # GET GENOME
 # -----------------------------------------------------------------------------
 #
-# This script attempts to download genome sequence files and
-# genome annotation from NCBI using the NCBI datasets API, or an
-# alternative database. If a genbank file is provided,
-# the script checks if it has a valid format and prepares the data for
-# downstream nodules.
+# This script attempts to download genome sequence (FASTA) and
+# genome annotation (GFF / GTF) files from NCBI using the NCBI datasets
+# API, or a similar database. Alternatively, a FASTA and GFF file can be
+# supplied by the user. Input is roughly checked for validity.
 
 from os import path
 from io import StringIO
 from subprocess import getoutput
 
-input_term = snakemake.params["term"]
 input_database = snakemake.params["database"]
+input_assembly = snakemake.params["assembly"]
+input_fasta = snakemake.params["fasta"]
+input_gff = snakemake.params["gff"]
 output_path = snakemake.output["path"]
 output_log = snakemake.log["path"]
 log = []
 error = []
 
 
-if not path.exists(input_term):
+def check_fasta(input_fasta, log=[], error=[]):
+    with open(input_fasta, "r") as fasta_file:
+        fasta = fasta_file.read()
+    n_items = fasta.count(">")
+    if n_items:
+        log += [f"Supplied fasta file '{input_fasta}' was found"]
+        log += [f"Supplied fasta file contains {n_items} items"]
+    else:
+        error += ["The supplied fasta file contains no valid entries starting with '>'"]
+    return fasta, log, error
+
+
+def check_gff(input_gff, log=[], error=[]):
+    with open(input_gff, "r") as gff_file:
+        gff = gff_file.read()
+    if gff.startswith("##gff-version"):
+        gff_regions = gff.count("sequence-region")
+        gff_genes = gff.count("\tgene\t")
+        gff_trans = gff.count("\ttranscript\t")
+        gff_exons = gff.count("\texon\t")
+        gff_cds = gff.count("\tCDS\t")
+        log += [f"Supplied GFF file '{input_gff}' was found"]
+        log += [
+            f"Supplied GFF file contains {gff_regions} sequence regions with:",
+            f"    - {gff_genes} genes",
+            f"    - {gff_trans} transcripts",
+            f"    - {gff_exons} exons",
+            f"    - {gff_cds} CDSs",
+        ]
+    else:
+        error += ["Supplied GFF file does not contain a valid '##gff-version' tag"]
+    return gff, log, error
+
+
+if input_database.lower() == "ncbi":
     ncbi_result = getoutput(
-        f"datasets summary genome accession {input_term} --as-json-lines | "
+        f"datasets summary genome accession {input_assembly} --as-json-lines | "
         + "dataformat tsv genome --fields accession,annotinfo-release-date,organism-name"
     )
     if ncbi_result.startswith("Error"):
@@ -52,50 +87,39 @@ if not path.exists(input_term):
             + f"cp ncbi_dataset/data/{refseq_id}/genomic.gff genome.gff"
         )
         str_out = getoutput(ncbi_command)
-else:
-    # import fasta file
-    with open(input_term, "r") as fasta_file:
-        fasta = fasta_file.read()
+        # import and check files
+        fasta, log, error = check_fasta(
+            path.join(output_path, "genome.fasta"), log, error
+        )
+        gff, log, error = check_gff(
+            path.join(output_path, "genome.gff"), log, error
+        )
 
-    # check fasta file
-    n_items = fasta.count(">")
-    if n_items:
-        log += [f"Supplied fasta file '{input_term}' was found"]
-        log += [f"Supplied fasta file contains {n_items} protein entries"]
-        decoy_prefix = [">XXX_", ">rev_", ">Rev_", ">REV_"]
-        for prefix in decoy_prefix:
-            if fasta.count(prefix):
-                log += [
-                    "Supplied fasta file seems to contain decoy "
-                    + f"proteins with prefix: '{prefix}'. Adding decoys is omitted"
-                ]
-                if prefix != ">rev_":
-                    fasta.replace(prefix, ">rev_")
-                    log += [
-                        f"Replaced decoy prefix '{prefix}' with standard prefix '>rev_'"
-                    ]
-        if all([i not in fasta for i in decoy_prefix]):
-            log += [
-                "File does not contain any of the decoy prefixes '{0}'".format(
-                    "', '".join(decoy_prefix)
-                ),
-                "Decoys will be added by 'decoypyrat'",
-            ]
+elif input_database.lower() == "manual":
+    if not path.exists(input_fasta):
+        error += ["The parameter 'fasta' is not a valid path to a FASTA file"]
+    elif not path.exists(input_gff):
+        error += ["The parameter 'gff' is not a valid path to a GFF/GTF file"]
     else:
-        error += ["The supplied fasta file contains no valid entries starting with '>'"]
-
-    # export fasta file
-    with open(path.join(output_path, "database.fasta"), "w") as fasta_out:
-        fasta_out.write(fasta)
+        # import and check files
+        fasta, log, error = check_fasta(input_fasta, log, error)
+        gff, log, error = check_gff(input_gff, log, error)
+        # export fasta and gff files
+        with open(path.join(output_path, "genome.fasta"), "w") as fasta_out:
+            fasta_out.write(fasta)
+        with open(path.join(output_path, "genome.gff"), "w") as gff_out:
+            gff_out.write(gff)
+else:
+    error += ["The parameter 'database' is none of 'ncbi', 'manual'"]
 
 # print error/log messages
 if error:
     print("\n".join(error))
     raise ValueError(
-        "Location or format of the supplied database entry was not correct, quitting"
+        "Location or format of the supplied genome files was not correct, quitting"
     )
 else:
     log += [f"Module finished successfully"]
-    log = ["DATABASE: " + i for i in log]
+    log = ["GET_GENOME: " + i for i in log]
     with open(output_log, "w") as log_file:
         log_file.write("\n".join(log))

@@ -1,6 +1,8 @@
 output:
-  path: "results"
+  path: "test/output"
 
 get_genome:
-  term: "GCF_000009045.1"
-  database: "NCBI"
+  database: "ncbi"
+  assembly: "GCF_000006945.2"
+  fasta: "test/input/Salmonella_enterica_subsp_enterica_serovar_typhimurium_str_lt2_gca_000006945.ASM694v2.dna.toplevel.fa"
+  gff: "test/input/Salmonella_enterica_subsp_enterica_serovar_typhimurium_str_lt2_gca_000006945.ASM694v2.49.gff3"
