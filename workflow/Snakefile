@@ -64,8 +64,8 @@ rule module_logs:
 rule versions:
     input:
         expand(
-            "workflow/envs/{module}.yml",
-            module=["get_genome"],
+            "workflow/envs/{module}",
+            module=listdir("workflow/envs/"),
         ),
     output:
         path=out("versions/log_packages.txt"),
