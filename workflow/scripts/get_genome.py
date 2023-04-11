@@ -17,6 +17,8 @@ input_assembly = snakemake.params["assembly"]
 input_fasta = snakemake.params["fasta"]
 input_gff = snakemake.params["gff"]
 output_path = snakemake.output["path"]
+output_fasta = snakemake.output["fasta"]
+output_gff = snakemake.output["gff"]
 output_log = snakemake.log["path"]
 log = []
 error = []
@@ -83,17 +85,13 @@ if input_database.lower() == "ncbi":
             f"datasets download genome accession {refseq_id}"
             + f" --filename {output_path}/database.zip --include genome,gff3; "
             + f"cd {output_path}; unzip database.zip; rm database.zip; "
-            + f"cp ncbi_dataset/data/{refseq_id}/*.fna genome.fasta; "
-            + f"cp ncbi_dataset/data/{refseq_id}/genomic.gff genome.gff"
+            + f"cp ncbi_dataset/data/{refseq_id}/*.fna {output_fasta}; "
+            + f"cp ncbi_dataset/data/{refseq_id}/genomic.gff {output_gff}"
         )
         str_out = getoutput(ncbi_command)
         # import and check files
-        fasta, log, error = check_fasta(
-            path.join(output_path, "genome.fasta"), log, error
-        )
-        gff, log, error = check_gff(
-            path.join(output_path, "genome.gff"), log, error
-        )
+        fasta, log, error = check_fasta(output_fasta, log, error)
+        gff, log, error = check_gff(output_gff, log, error)
 
 elif input_database.lower() == "manual":
     if not path.exists(input_fasta):
@@ -105,9 +103,9 @@ elif input_database.lower() == "manual":
         fasta, log, error = check_fasta(input_fasta, log, error)
         gff, log, error = check_gff(input_gff, log, error)
         # export fasta and gff files
-        with open(path.join(output_path, "genome.fasta"), "w") as fasta_out:
+        with open(output_fasta, "w") as fasta_out:
             fasta_out.write(fasta)
-        with open(path.join(output_path, "genome.gff"), "w") as gff_out:
+        with open({output_gff}, "w") as gff_out:
             gff_out.write(gff)
 else:
     error += ["The parameter 'database' is none of 'ncbi', 'manual'"]
