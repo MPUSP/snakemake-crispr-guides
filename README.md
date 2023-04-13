@@ -161,7 +161,6 @@ This table lists all parameters that can be used to run the workflow.
 | parameter              | type      | details                                    | default                                              |
 | ---------------------- | --------- | ------------------------------------------ | ---------------------------------------------------- |
 | GET_GENOME             |           |                                            |                                                      |
-| output/path            | path      | results dir                                | `test/output/`                                       |
 | database               | character | one of `ncbi`, `manual`                    | `ncbi`                                               |
 | assembly               | character | RefSeq ID                                  | `GCF_000006945.2`                                    |
 | fasta                  | path      | optional input                             | Null                                                 |

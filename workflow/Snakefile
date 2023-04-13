@@ -16,18 +16,15 @@ include: "rules/common.smk"
 
 # load and print configuration
 # -----------------------------------------------------
-configfile: path.join(workflow.basedir, "../config/config.yml")
-
-
-print_params(config)
+configfile: "config/config.yml"
 
 
 # target rule
 # -----------------------------------------------------
 rule all:
     input:
-        out("versions/log_env.txt"),
-        out("module_logs/log.txt"),
+        "results/versions/log_env.txt",
+        "results/module_logs/log.txt",
 
 
 # module to fetch genome from NCBI or Ensemble
@@ -39,13 +36,13 @@ rule get_genome:
         fasta=config["get_genome"]["fasta"],
         gff=config["get_genome"]["gff"],
     output:
-        path=directory(out("get_genome")),
-        fasta=out("get_genome/genome.fasta"),
-        gff=out("get_genome/genome.gff"),
+        path=directory("results/get_genome"),
+        fasta="results/get_genome/genome.fasta",
+        gff="results/get_genome/genome.gff",
     conda:
         "envs/get_genome.yml"
     log:
-        path=out("get_genome/log.txt"),
+        path="results/get_genome/log.txt",
     script:
         "scripts/get_genome.py"
 
@@ -56,11 +53,11 @@ rule bowtie_index:
     input:
         rules.get_genome.output.fasta,
     output:
-        path=directory(out("bowtie_index")),
+        path=directory("results/bowtie_index"),
     conda:
         "envs/bowtie_index.yml"
     log:
-        path=out("bowtie_index/log.txt"),
+        path="results/bowtie_index/log.txt",
     shell:
         "bowtie2-build {input} {output.path}/index > {log.path} 2>&1"
 
@@ -75,11 +72,11 @@ rule design_guides:
         config["design_guides"],
         max_cores=workflow.cores,
     output:
-        guideRNAs_top=out("design_guides/guideRNAs_top.csv"),
+        guideRNAs_top="results/design_guides/guideRNAs_top.csv",
     conda:
         "envs/design_guides.yml"
     log:
-        path=out("design_guides/log.txt"),
+        path="results/design_guides/log.txt",
     script:
         "scripts/design_guides.R"
 
@@ -94,7 +91,7 @@ rule module_logs:
     conda:
         "envs/basic.yml"
     log:
-        path=out("module_logs/log.txt"),
+        path="results/module_logs/log.txt",
     shell:
         "cat {input} >> {log.path}"
 
@@ -108,11 +105,11 @@ rule versions:
             module=listdir(wfpath("envs")),
         ),
     output:
-        path=out("versions/log_packages.txt"),
+        path="results/versions/log_packages.txt",
     conda:
         "envs/basic.yml"
     log:
-        path=out("versions/log_env.txt"),
+        path="results/versions/log_env.txt",
     shell:
         "conda env export > {log.path};"
         "cat {input} >> {output.path}"

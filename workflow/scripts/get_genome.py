@@ -84,11 +84,14 @@ if input_database.lower() == "ncbi":
         ncbi_command = (
             f"datasets download genome accession {refseq_id}"
             + f" --filename {output_path}/database.zip --include genome,gff3; "
-            + f"cd {output_path}; unzip database.zip; rm database.zip; "
-            + f"cp ncbi_dataset/data/{refseq_id}/*.fna {output_fasta}; "
-            + f"cp ncbi_dataset/data/{refseq_id}/genomic.gff {output_gff}"
+            + f"cd {output_path}; unzip database.zip; rm database.zip"
+        )
+        copy_command = (
+            f"cp {output_path}/ncbi_dataset/data/{refseq_id}/*.fna {output_fasta}; "
+            + f"cp {output_path}/ncbi_dataset/data/{refseq_id}/genomic.gff {output_gff}"
         )
         str_out = getoutput(ncbi_command)
+        str_cp = getoutput(copy_command)
         # import and check files
         fasta, log, error = check_fasta(output_fasta, log, error)
         gff, log, error = check_gff(output_gff, log, error)

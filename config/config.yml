@@ -1,6 +1,3 @@
-output:
-  path: "test/output"
-
 get_genome:
   database: "ncbi"
   assembly: "GCF_000006945.2"
