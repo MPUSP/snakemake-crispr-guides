@@ -26,7 +26,6 @@ print_params(config)
 # -----------------------------------------------------
 rule all:
     input:
-        out("bowtie_index/log.txt"),
         out("versions/log_env.txt"),
         out("module_logs/log.txt"),
 
@@ -66,11 +65,32 @@ rule bowtie_index:
         "bowtie2-build {input} {output.path}/index > {log.path} 2>&1"
 
 
+# module to design guide RNAs using R crisprDesign
+# -----------------------------------------------------
+rule design_guides:
+    input:
+        fasta=rules.get_genome.output.fasta,
+        gff=rules.get_genome.output.gff,
+    params:
+        config["design_guides"],
+        max_cores=workflow.cores,
+    output:
+        guideRNAs_top=out("design_guides/guideRNAs_top.csv"),
+    conda:
+        "envs/design_guides.yml"
+    log:
+        path=out("design_guides/log.txt"),
+    script:
+        "scripts/design_guides.R"
+
+
 # module to combine all module log files to single log
 # -----------------------------------------------------
 rule module_logs:
     input:
         rules.get_genome.log.path,
+        rules.bowtie_index.log.path,
+        rules.design_guides.log.path,
     conda:
         "envs/basic.yml"
     log:

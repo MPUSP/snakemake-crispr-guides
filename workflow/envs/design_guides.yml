@@ -1,0 +1,9 @@
+name: design_guides
+dependencies:
+ - conda-forge::r-tidyverse=2.0.0
+ - bioconda::bioconductor-genomicfeatures=1.50.2
+ - bioconda::bioconductor-orfik=1.18.0
+ - bioconda::bioconductor-crisprbase=1.2.0
+ - bioconda::bioconductor-crisprdesign=1.0.0
+ - bioconda::bioconductor-crisprbwa=1.2.0
+ - bioconda::bioconductor-crisprscore=1.2.0

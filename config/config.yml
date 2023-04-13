@@ -4,5 +4,21 @@ output:
 get_genome:
   database: "ncbi"
   assembly: "GCF_000006945.2"
-  fasta: "test/input/Salmonella_enterica_subsp_enterica_serovar_typhimurium_str_lt2_gca_000006945.ASM694v2.dna.toplevel.fa"
-  gff: "test/input/Salmonella_enterica_subsp_enterica_serovar_typhimurium_str_lt2_gca_000006945.ASM694v2.49.gff3"
+  fasta: Null
+  gff: Null
+
+design_guides:
+  gene_subset:  10
+  five_utr:  0
+  circular:  False
+  canonical:  True
+  both_strands:  True
+  spacer_length:  20
+  guide_aligner:  "biostrings"
+  crispr_enzyme:  "SpCas9"
+  gc_content_range:  [30, 70]
+  score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan"]
+  restriction_sites:  Null
+  bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
+  filter_top_n:  10
+  filter_score_threshold:  Null
