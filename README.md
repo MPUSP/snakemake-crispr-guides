@@ -158,29 +158,29 @@ snakemake --cores 10 --use-conda \
 
 This table lists all parameters that can be used to run the workflow.
 
-| parameter              | type      | details                                    | default                                              |
-| ---------------------- | --------- | ------------------------------------------ | ---------------------------------------------------- |
-| GET_GENOME             |           |                                            |                                                      |
-| database               | character | one of `ncbi`, `manual`                    | `ncbi`                                               |
-| assembly               | character | RefSeq ID                                  | `GCF_000006945.2`                                    |
-| fasta                  | path      | optional input                             | Null                                                 |
-| gff                    | path      | optional input                             | Null                                                 |
-| DESIGN_GUIDES          |           |                                            |                                                      |
-| gene_subset            | numeric   | use subset of N genes, good for testing    | 10                                                   |
-| five_utr               | numeric   | length of (artificial) 5' UTR added to CDS | 0                                                    |
-| circular               | logical   | is the genome circular?                    | False                                                |
-| canonical              | logical   | only canonical PAM sites are included      | True                                                 |
-| both_strands           | logical   | find guides on "+"/"-" or only "+" strand  | True                                                 |
-| spacer_length          | numeric   | desired length of guides                   | 20                                                   |
-| guide_aligner          | character | one of `biostrings`, `bowtie`              | `biostrings`                                         |
-| crispr_enzyme          | character | CRISPR enzyme ID                           | `SpCas9`                                             |
-| gc_content_range       | numeric   | range of allowed GC content                | [30, 70]                                             |
-| score_methods          | character | see _crisprScore_ package                  | ["ruleset1", "ruleset3", "crisprater", "crisprscan"] |
-| score_weights          | numeric   | opt. weights when calculating mean score   | [ 1, 1, 1, 1 ]                                       |
-| restriction_sites      | character | sequences to omit in entire guide          | Null                                                 |
-| bad_seeds              | character | sequences to omit in seed region           | ["ACCCA", "ATACT", "TGGAA"]                          |
-| filter_top_n           | numeric   | max number of guides to return             | 10                                                   |
-| filter_score_threshold | numeric   | mean score to use as lower limit           | Null                                                 |
+| parameter              | type      | details                                   | default                                                         |
+| ---------------------- | --------- | ----------------------------------------- | --------------------------------------------------------------- |
+| GET_GENOME             |           |                                           |                                                                 |
+| database               | character | one of `ncbi`, `manual`                   | `ncbi`                                                          |
+| assembly               | character | RefSeq ID                                 | `GCF_000006945.2`                                               |
+| fasta                  | path      | optional input                            | Null                                                            |
+| gff                    | path      | optional input                            | Null                                                            |
+| DESIGN_GUIDES          |           |                                           |                                                                 |
+| gene_subset            | numeric   | use subset of N genes, good for testing   | 10                                                              |
+| tss_window             | numeric   | upstream/downstream window around TSS     | [0, 500]                                                        |
+| circular               | logical   | is the genome circular?                   | False                                                           |
+| canonical              | logical   | only canonical PAM sites are included     | True                                                            |
+| both_strands           | logical   | find guides on "+"/"-" or only "+" strand | True                                                            |
+| spacer_length          | numeric   | desired length of guides                  | 20                                                              |
+| guide_aligner          | character | one of `biostrings`, `bowtie`             | `biostrings`                                                    |
+| crispr_enzyme          | character | CRISPR enzyme ID                          | `SpCas9`                                                        |
+| gc_content_range       | numeric   | range of allowed GC content               | [30, 70]                                                        |
+| score_methods          | character | see _crisprScore_ package                 | ["ruleset1", "ruleset3", "crisprater", "crisprscan", "tssdist"] |
+| score_weights          | numeric   | opt. weights when calculating mean score  | [1, 1, 1, 1, 1]                                                 |
+| restriction_sites      | character | sequences to omit in entire guide         | Null                                                            |
+| bad_seeds              | character | sequences to omit in seed region          | ["ACCCA", "ATACT", "TGGAA"]                                     |
+| filter_top_n           | numeric   | max number of guides to return            | 10                                                              |
+| filter_score_threshold | numeric   | mean score to use as lower limit          | Null                                                            |
 
 
 ## Output

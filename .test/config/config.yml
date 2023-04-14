@@ -5,8 +5,8 @@ get_genome:
   gff: Null
 
 design_guides:
-  gene_subset:  10
-  five_utr:  0
+  target_region:  ["NC_003277.2"]
+  tss_window:  [0, 500]
   circular:  False
   canonical:  True
   both_strands:  True
@@ -14,8 +14,8 @@ design_guides:
   guide_aligner:  "biostrings"
   crispr_enzyme:  "SpCas9"
   gc_content_range:  [30, 70]
-  score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan"]
-  score_weights:  [ 1, 1, 1, 1 ]
+  score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan", "tssdist"]
+  score_weights:  [1, 1, 1, 1, 1]
   restriction_sites:  Null
   bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
   filter_top_n:  10

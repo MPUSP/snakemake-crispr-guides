@@ -53,38 +53,53 @@ txdb <- makeTxDbFromGFF(
   chrominfo = seqinfo_genome
 )
 
-# extract all transcripts
-list_cds <- ORFik::loadRegion(txdb, "cds")
-if (!is.null(gene_subset)) {
-  list_cds <- list_cds[1:gene_subset]
+# optionally select only specific chromosome/region
+if (!is.null(target_region)) {
+  genome_dna <- genome_dna[names(genome_dna) %in% target_region]
 }
-
-# optionally extract region surrounding each start codon
-# to target probable promoters
-list_cds_leader <- extendLeaders(list_cds, extension = five_utr)
 
 
 # STAGE 2 : FINDING GUIDES
 # ------------------------------
-# extract sequences for all CDS start regions
-list_cds_seq <- GenomicFeatures::extractTranscriptSeqs(
-  genome_dna,
-  list_cds_leader
-)
-
 # predict all possible guides for target regions
 messages <- append(
   messages,
   paste0("predicting guide RNAs for enzyme: ", crispr_enzyme)
 )
 data(list = c(crispr_enzyme), package = "crisprBase")
-list_pred_guides <- crisprDesign::findSpacers(
-  x = list_cds_seq,
+list_pred_guides <- findSpacers(
+  x = genome_dna,
   canonical = canonical,
   both_strands = both_strands,
   spacer_len = spacer_length,
   crisprNuclease = get(crispr_enzyme)
 )
+
+# extract (pseudo) transcription start sites
+list_tss <- resize(transcripts(txdb), width = 1)
+list_tss$ID <- list_tss$tx_name
+
+# map guides to transcripts
+list_pred_guides <- addTssAnnotation(
+  list_pred_guides,
+  list_tss,
+  tss_window = tss_window
+)
+
+# Remove all guides that target not within a TSS window
+index_non_target <- unlist(mclapply(
+  mc.cores = max_cores,
+  X = list_pred_guides$tssAnnotation,
+  FUN = nrow
+))
+list_pred_guides <- list_pred_guides[index_non_target == 1]
+
+# add cds/transcript name as additional column
+list_pred_guides$tx_name <- unname(unlist(mclapply(
+  mc.cores = max_cores,
+  X = list_pred_guides$tssAnnotation,
+  FUN = function(x) x[["tx_name"]]
+)))
 
 # add spacer and PAM sequence features
 list_pred_guides <- addSequenceFeatures(list_pred_guides)
@@ -130,8 +145,15 @@ list_pred_guides <- crisprDesign::addOffTargetScores(list_pred_guides)
 # add ON target scores based on spacer and protospacer sequence
 list_pred_guides <- crisprDesign::addOnTargetScores(
   list_pred_guides,
-  methods = score_methods
+  methods = setdiff(score_methods, "tssdist")
 )
+
+# add score based on distance to TSS; lower dist = higher score
+list_pred_guides$score_tssdist <- unname(unlist(mclapply(
+  mc.cores = max_cores,
+  X = list_pred_guides$tssAnnotation,
+  FUN = function(x) 1-abs(x[["dist_to_tss"]])/max(abs(tss_window))
+)))
 
 # add information on possible restriction sites
 if (!is.null(restriction_sites)) {
@@ -227,7 +249,7 @@ list_pred_guides$score_all <- list_pred_guides@elementMetadata[paste0("score_", 
 if (!is.null(filter_top_n)) {
   index_top_n <- tapply(
     list_pred_guides$score_all %>% setNames(names(list_pred_guides)),
-    list_pred_guides$region,
+    list_pred_guides$tx_name,
     function(x) names(x)[order(x, decreasing = TRUE)][1:10]
   ) %>%
     unlist() %>%
@@ -238,7 +260,12 @@ if (!is.null(filter_top_n)) {
   ))
   list_pred_guides <- list_pred_guides[names(list_pred_guides) %in% index_top_n]
 } else if (!is.null(filter_score_threshold)) {
-  messages <- append(messages, "Filtering by on-target score threshold not yet implemented")
+  index_score <- list_pred_guides$score_all >= filter_score_threshold
+  list_pred_guides <- list_pred_guides[index_score]
+  messages <- append(messages, paste0(
+    "Removed ", length(list_pred_guides) - sum(index_score),
+    " guide RNAs with low rank for on-target scores"
+  ))
 }
 
 # reduce overlap: from each set of overlapping guides,
@@ -278,16 +305,22 @@ messages <- append(messages, paste0(
   round(n_guides_removed / n_guides_pre_filter * 100, 1), "%)"
 ))
 messages <- append(messages, paste0(
-  "A final list of ", length(list_pred_guides), " guide RNAs is exported"
+  "A final list of ", length(list_pred_guides), " guide RNAs was exported"
 ))
 
 
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
-# export results as GuideSet and data.frame / csv
+# export results as csv table
 df_pred_guides <- list_pred_guides %>%
   as.data.frame() %>%
-  as_tibble()
+  as_tibble() %>%
+  mutate(
+    width = spacer_length,
+    start = ifelse(strand == "-", start + 1, start - 20),
+    end = ifelse(strand == "-", end + 20, end - 1)
+  )
+
 write_csv(df_pred_guides, output_top)
 
 write_lines(
