@@ -73,8 +73,10 @@ list_cds_seq <- GenomicFeatures::extractTranscriptSeqs(
 )
 
 # predict all possible guides for target regions
-messages <- append(messages,
-  paste0("predicting guide RNAs for enzyme: ", crispr_enzyme))
+messages <- append(
+  messages,
+  paste0("predicting guide RNAs for enzyme: ", crispr_enzyme)
+)
 data(list = c(crispr_enzyme), package = "crisprBase")
 list_pred_guides <- crisprDesign::findSpacers(
   x = list_cds_seq,
@@ -91,7 +93,11 @@ list_pred_guides <- addSequenceFeatures(list_pred_guides)
 if (guide_aligner == "biostrings") {
   list_pred_guides_chunks <- split(
     list_pred_guides,
-    ceiling(seq_along(list_pred_guides) / (length(list_pred_guides) / max_cores))
+    ceiling(
+      seq_along(list_pred_guides) /
+      (length(list_pred_guides) /
+      max_cores)
+    )
   )
 
   list_pred_guides_chunks <- mclapply(
@@ -157,37 +163,51 @@ n_guides_pre_filter <- length(list_pred_guides)
 filter_gc_low <- list_pred_guides$percentGC >= gc_content_range[1]
 filter_gc_high <- list_pred_guides$percentGC <= gc_content_range[2]
 
-messages <- append(messages, paste0("Removed ", sum(!filter_gc_low),
-  " guide RNAs with GC content below ", gc_content_range[1], "%"))
-messages <- append(messages, paste0("Removed ", sum(!filter_gc_high),
-  " guide RNAs with GC content above ", gc_content_range[2], "%"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_gc_low),
+  " guide RNAs with GC content below ", gc_content_range[1], "%"
+))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_gc_high),
+  " guide RNAs with GC content above ", gc_content_range[2], "%"
+))
 
 # filter by poly-T stretches
 filter_polyt <- !list_pred_guides$polyT
-messages <- append(messages, paste0("Removed ", sum(!filter_polyt),
-  " guide RNAs with poly-T stretches"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_polyt),
+  " guide RNAs with poly-T stretches"
+))
 
 # filter by starting-G stretches
 filter_startg <- !list_pred_guides$startingGGGGG
-messages <- append(messages, paste0("Removed ", sum(!filter_startg),
-  " guide RNAs with 5 starting G stretches"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_startg),
+  " guide RNAs with 5 starting G stretches"
+))
 
 # filter by off-target hits
 filter_offtargets <- with(list_pred_guides, n0 == 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
-messages <- append(messages, paste0("Removed ", sum(!filter_offtargets),
-  " guide RNAs with off targets (1 to 4 nt mismatches allowed)"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_offtargets),
+  " guide RNAs with off targets (1 to 4 nt mismatches allowed)"
+))
 
 # filter by off-target scores
 filter_offtarget_scores <- unname(list_pred_guides$score_cfd == 1 & list_pred_guides$score_cfd == 1)
-messages <- append(messages, paste0("Removed ", sum(!filter_offtarget_scores),
-  " guide RNAs with CFD or MIT off-target score < 1"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_offtarget_scores),
+  " guide RNAs with CFD or MIT off-target score < 1"
+))
 
 # filter by bad seed sequences
 filter_badseeds <- list_pred_guides@elementMetadata[paste0("seed_", bad_seeds)] %>%
   as.data.frame() %>%
   apply(1, function(x) !any(x))
-messages <- append(messages, paste0("Removed ", sum(!filter_badseeds),
-  " guide RNAs with a bad seed sequence"))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_badseeds),
+  " guide RNAs with a bad seed sequence"
+))
 
 # apply filters
 filter_by_all <- filter_gc_low &
@@ -201,7 +221,7 @@ list_pred_guides <- list_pred_guides[filter_by_all]
 
 # make composite score (mean of all scores)
 list_pred_guides$score_all <- list_pred_guides@elementMetadata[paste0("score_", score_methods)] %>%
-  apply(1, mean, na.rm = TRUE)
+  apply(1, weighted.mean, w = score_weights, na.rm = TRUE)
 
 # apply filtering by score
 if (!is.null(filter_top_n)) {
@@ -242,8 +262,10 @@ filter_overlaps <- function(guideset, guide_length = spacer_length) {
 # this loop filters guides iteratively until no overlapping guides remain
 guides_filtered <- filter_overlaps(list_pred_guides)
 while (length(guides_filtered) > 0) {
-  messages <- append(messages, paste0("Removed ", length(guides_filtered),
-    " guide RNAs overlapping with better ones"))
+  messages <- append(messages, paste0(
+    "Removed ", length(guides_filtered),
+    " guide RNAs overlapping with better ones"
+  ))
   list_pred_guides <- list_pred_guides[-guides_filtered]
   guides_filtered <- filter_overlaps(list_pred_guides)
 }

@@ -15,6 +15,7 @@ design_guides:
   crispr_enzyme:  "SpCas9"
   gc_content_range:  [30, 70]
   score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan"]
+  score_weights:  [ 1, 1, 1, 1 ]
   restriction_sites:  Null
   bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
   filter_top_n:  10

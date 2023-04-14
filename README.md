@@ -176,6 +176,7 @@ This table lists all parameters that can be used to run the workflow.
 | crispr_enzyme          | character | CRISPR enzyme ID                           | `SpCas9`                                             |
 | gc_content_range       | numeric   | range of allowed GC content                | [30, 70]                                             |
 | score_methods          | character | see _crisprScore_ package                  | ["ruleset1", "ruleset3", "crisprater", "crisprscan"] |
+| score_weights          | numeric   | opt. weights when calculating mean score   | [ 1, 1, 1, 1 ]                                       |
 | restriction_sites      | character | sequences to omit in entire guide          | Null                                                 |
 | bad_seeds              | character | sequences to omit in seed region           | ["ACCCA", "ATACT", "TGGAA"]                          |
 | filter_top_n           | numeric   | max number of guides to return             | 10                                                   |
