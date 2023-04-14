@@ -1,0 +1,22 @@
+get_genome:
+  database: "ncbi"
+  assembly: "GCF_000006945.2"
+  fasta: Null
+  gff: Null
+
+design_guides:
+  gene_subset:  10
+  five_utr:  0
+  circular:  False
+  canonical:  True
+  both_strands:  True
+  spacer_length:  20
+  guide_aligner:  "biostrings"
+  crispr_enzyme:  "SpCas9"
+  gc_content_range:  [30, 70]
+  score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan"]
+  score_weights:  [ 1, 1, 1, 1 ]
+  restriction_sites:  Null
+  bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
+  filter_top_n:  10
+  filter_score_threshold:  Null
