@@ -81,6 +81,23 @@ rule design_guides:
         "scripts/design_guides.R"
 
 
+# module to visualize guide RNA prediction using R
+# -----------------------------------------------------
+rule visualize_guides:
+    input:
+        guides=rules.design_guides.output.guideRNAs_top,
+    params:
+        config["visualize_guides"],
+    output:
+        html="results/visualize_guides/report.html",
+    conda:
+        "envs/visualize_guides.yml"
+    log:
+        path="results/visualize_guides/log.txt",
+    script:
+        "notebooks/report.Rmd"
+
+
 # module to combine all module log files to single log
 # -----------------------------------------------------
 rule module_logs:
@@ -88,6 +105,7 @@ rule module_logs:
         rules.get_genome.log.path,
         rules.bowtie_index.log.path,
         rules.design_guides.log.path,
+        rules.visualize_guides.log.path,
     conda:
         "envs/basic.yml"
     log:

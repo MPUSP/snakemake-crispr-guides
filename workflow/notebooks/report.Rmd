@@ -1,0 +1,262 @@
+---
+title: "Report: Design of guide RNAs with `snakemake-crispr-guides`"
+auhtor: "`r sessionInfo()$platform`"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+   rmd: "report.Rmd"
+output:
+  html_document:
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    number_sections: yes
+    df_print: paged
+---
+
+----------
+
+# Background
+
+This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to even simpler web resources such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
+
+This workflow relies to a large degree on the underlying [Bioconductor package ecosystem `crisprVerse`](http://bioconductor.org/packages/release/bioc/html/crisprVerse.html), published in 2022 by:
+
+> Hoberecht, L., Perampalam, P., Lun, A. et al. _A comprehensive Bioconductor ecosystem for the design of CRISPR guide RNAs across nucleases and technologies_. Nat Commun 13, 6568 (**2022**). https://doi.org/10.1038/s41467-022-34320-7.
+
+The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stable/) and consists of the following steps:
+
+1. Obtain genome database in `fasta` and `gff` format (`python`, [NCBI Datasets](https://www.ncbi.nlm.nih.gov/datasets/docs/v2/))
+   1. Using automatic download from NCBI with a `RefSeq` ID
+   2. Using user-supplied files
+2. Find all possible guide RNAs for the given sequence, with many options for customization (`R`, `crisprVerse`)
+3. Collect on-target and off-target scores (`R`, `crisprVerse`, `Bowtie2`)
+4. Filter and rank guide RNAs based on scores and return final list (`R`, `crisprVerse`)
+5. Generate report with overview figures and statistics (`R markdown`)
+
+If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
+
+----------
+
+# Prerequisites
+
+## Packages
+
+Loaded required R packages:
+
+- `tidyverse`
+- `ggrepel`
+- `ggpubr`
+
+
+```{r, echo = FALSE, warning = FALSE}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(ggrepel)
+  library(ggpubr)
+})
+```
+
+
+```{r, echo = FALSE}
+# custom ggplot2 theme that is reused for all later plots
+custom_colors <- c("#E7298A", "#66A61E", "#E6AB02", "#7570B3", "#B3B3B3", "#1B9E77", "#D95F02", "#A6761D")
+custom_range <- function(n = 5) {
+  colorRampPalette(custom_colors[c(1, 5, 2)])(n)
+}
+
+custom_theme <- function(base_size = 12, base_line_size = 1.0, base_rect_size = 1.0, ...) {
+  theme_light(base_size = base_size, base_line_size = base_line_size, base_rect_size = base_rect_size) + theme(
+    title = element_text(colour = grey(0.4), size = 10),
+    plot.margin = unit(c(12, 12, 12, 12), "points"),
+    axis.ticks.length = unit(0.2, "cm"),
+    axis.ticks = element_line(colour = grey(0.4), linetype = "solid", lineend = "round"),
+    axis.text.x = element_text(colour = grey(0.4), size = 10),
+    axis.text.y = element_text(colour = grey(0.4), size = 10),
+    panel.grid.major = element_line(linewidth = 0.6, linetype = "solid", colour = grey(0.9)),
+    panel.grid.minor = element_blank(),
+    panel.border = element_rect(linetype = "solid", colour = grey(0.4), fill = NA, linewidth = 1.0),
+    panel.background = element_blank(),
+    strip.background = element_blank(),
+    strip.text = element_text(colour = grey(0.4), size = 10, margin = unit(rep(3, 4), "points")),
+    legend.text = element_text(colour = grey(0.4), size = 10),
+    legend.title = element_blank(),
+    legend.background = element_blank(),
+    ...
+  )
+}
+
+# set graphical parameter for subfigure labels
+list_fontpars <- list(face = "plain", size = 14)
+
+# default figure size
+figwidth <- 7.0
+figheight <- 4.5
+
+# function to export an image as svg and png
+save_plot <- function(pl, path = "../figures/", width = 6, height = 6) {
+  pl_name <- deparse(substitute(pl))
+  svg(
+    filename = paste0(path, pl_name, ".svg"),
+    width = width, height = height
+  )
+  print(pl)
+  dev.off()
+  png(
+    filename = paste0(path, pl_name, ".png"),
+    width = width * 125, height = height * 125, res = 120
+  )
+  print(pl)
+  invisible(capture.output(dev.off()))
+}
+```
+
+
+## Result table
+
+Imported table of predicted guide RNAs.
+
+*NOTE: tables are only rendered in HTML output but not PDF.*
+
+Head of the table (first six rows):
+
+```{r, echo = FALSE}
+df_guides <- read_csv(snakemake@input$guides, show_col_types = FALSE)
+head(df_guides)
+```
+
+## Configuration
+
+Show parameters that were used for guide RNA prediction.
+The displayed parameters are taken from the pipelines `config.yml` file.
+
+*NOTE: tables are only rendered in HTML output but not PDF.*
+
+```{r, echo = FALSE}
+list_config <- read_lines("config/config.yml")
+list_config <- gsub("\"", "", list_config)
+print(list_config)
+```
+
+
+----------
+
+# Summary statistics
+
+## Number of predicted small guide RNAs
+
+- Overview about number of targeted genes or other elements
+- Overview about number of predicted small guide RNAs (sgRNAs)
+- Distribution of number of sgRNAs per target (gene)
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+df_n_guides <- df_guides %>%
+  group_by(tx_name) %>%
+  summarize(n_guides = n()) %>%
+  count(n_guides)
+
+print(paste0("Total number of targets (genes) with predicted guide RNAs: ",
+  length(unique(df_guides$tx_name))))
+
+print(paste0("Total number of predicted guide RNAs: ",
+  nrow(df_guides)))
+
+plot_n_guides <- df_n_guides %>%
+  ggplot(aes(x = n_guides, y = n)) +
+  geom_col(color = "white", fill = custom_colors[1]) +
+  labs(x = "guides per target", y = "count",
+    title = "Number of predicted guide RNAs per target") +
+  custom_theme()
+
+print(plot_n_guides)
+```
+
+## Position, width, strand, and PAM site
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
+ggpubr::ggarrange(
+
+  df_guides %>%
+    count(strand) %>%
+    ggplot(aes(x = factor(strand), y = n)) +
+    geom_col(color = "white", fill = custom_colors[1]) +
+    labs(x = "strand", y = "count", title = "Guides per strand") +
+    custom_theme(),
+
+  df_guides %>%
+    count(width) %>%
+    ggplot(aes(x = factor(width), y = n)) +
+    geom_col(color = "white", fill = custom_colors[1]) +
+    labs(x = "width", y = "count", title = "Width distribution of guides") +
+    custom_theme(),
+
+  df_guides %>%
+    count(pam) %>%
+    ggplot(aes(x = factor(pam), y = n)) +
+    geom_col(color = "white", fill = custom_colors[1]) +
+    labs(x = "pam", y = "count", title = "PAM sequence of guides") +
+    custom_theme(),
+
+  df_guides %>%
+    ggplot(aes(x = 1-score_tssdist)) +
+    geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
+    labs(x = "distance [fraction of search window]", y = "count", title = "Relative distance to TSS") +
+    custom_theme()
+
+)
+```
+
+----------
+
+# About this report
+
+## Pipeline
+
+This report was automatically generated by the [snakemake-crispr-guides](https://github.com/MPUSP/snakemake-crispr-guides) pipeline.
+
+For issues, bugs, and feature requests please use the pipeline's [github page](https://github.com/MPUSP/snakemake-crispr-guides/issues).
+
+For all other feedback, contact the author(s):
+
+- Michael Jahn, PhD (author and maintainer): jahn@mpusp.mpg.decoy
+
+The pipeline is developed at the [Max Planck Unit for the Science of Pathogens](https://www.mpusp.mpg.de/), Berlin, Germany.
+
+## Packages used in the pipeline
+
+This list shows the fixed dependencies used as `conda` environment variables within the pipeline.
+
+```{r, echo = FALSE, warnings = FALSE}
+versions <- read_delim("results/versions/log_packages.txt",
+  delim = "\n",
+  show_col_types = FALSE,
+  col_names = "module"
+)
+
+print(versions, n = Inf)
+```
+
+## Data accessability
+
+The following resources were used to generate this report:
+
+- Guide RNA results table: `results/design_guides/guideRNAs_top.csv`
+- config file: `config/config.yml`
+
+## Session Info
+
+Link to the R markdown source that was used to generate this report:
+
+<a download="report.Rmd" href="`r base64enc::dataURI(file = params$rmd, mime = 'text/rmd', encoding = 'base64')`">R Markdown source file</a>
+
+Session info (R base and package versions):
+
+```{r, echo = FALSE}
+sessionInfo()
+```
+
+```{r, echo = FALSE}
+write_lines(
+  "VISUALIZE_GUIDES: finished writing HTML report successfully",
+  file = "results/visualize_guides/log.txt"
+)
+```
