@@ -98,6 +98,21 @@ rule visualize_guides:
         "notebooks/report.Rmd"
 
 
+# module to convert HTML to PDF output
+# -----------------------------------------------------
+rule pdf:
+    input:
+        html=rules.visualize_guides.output.html,
+    output:
+        pdf="results/pdf/report.pdf",
+    conda:
+        "envs/pdf.yml"
+    log:
+        path="results/pdf/log.txt",
+    shell:
+        "weasyprint -v {input.html} {output.pdf} &> {log.path}"
+
+
 # module to combine all module log files to single log
 # -----------------------------------------------------
 rule module_logs:
@@ -106,6 +121,7 @@ rule module_logs:
         rules.bowtie_index.log.path,
         rules.design_guides.log.path,
         rules.visualize_guides.log.path,
+        rules.pdf.log.path,
     conda:
         "envs/basic.yml"
     log:

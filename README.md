@@ -52,6 +52,8 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
 3. Collect on-target and off-target scores (`R`, `crisprVerse`, `Bowtie2`)
 4. Filter and rank guide RNAs based on scores and return final list (`R`, `crisprVerse`)
 5. Generate report with overview figures and statistics (`R markdown`)
+6. Return report as HTML and PDF files (`weasyprint`)
+7. Export module logs and versions
 
 If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
 
@@ -200,6 +202,22 @@ The workflow generates the following output from its modules:
 <summary>design_guides</summary>
 
 - `guideRNAs_top.csv`: Table with top N guide RNAs per gene remaining after filtering
+- `log.txt`: Log file for this module
+
+</details>
+
+<details markdown="1">
+<summary>visualize_guides</summary>
+
+- `report.html`: HTML report with summary statistics and other information about the designed library
+- `log.txt`: Log file for this module
+
+</details>
+
+<details markdown="1">
+<summary>pdf</summary>
+
+- `report.pdf`: PDF version of the HTML report. Does not contain table previews
 - `log.txt`: Log file for this module
 
 </details>
