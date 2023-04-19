@@ -2,13 +2,13 @@
 # ------------------------------
 suppressPackageStartupMessages({
   library(tidyverse)
+  library(Biostrings)
   library(GenomeInfoDbData)
   library(GenomicFeatures)
   library(crisprBase)
   library(crisprDesign)
   library(crisprBwa)
   library(crisprScore)
-  library(ORFik)
   library(parallel)
 })
 
@@ -101,6 +101,15 @@ list_pred_guides$tx_name <- unname(unlist(mclapply(
   FUN = function(x) x[["tx_name"]]
 )))
 
+# add distance to transcription start site (TSS) and other
+# target gene information
+df_tss_annot <- as.data.frame(list_pred_guides$tssAnnotation) %>%
+  dplyr::select(-group, -group_name, -chr, -strand)
+list_pred_guides@elementMetadata <- cbind(
+  list_pred_guides@elementMetadata,
+  df_tss_annot
+)
+
 # add spacer and PAM sequence features
 list_pred_guides <- addSequenceFeatures(list_pred_guides)
 
@@ -148,12 +157,17 @@ list_pred_guides <- crisprDesign::addOnTargetScores(
   methods = setdiff(score_methods, "tssdist")
 )
 
+# rescale scores to a range between 0 and 1 if they exceed this range
+for (score in setdiff(score_methods, "tssdist")) {
+  score_val <- list_pred_guides@elementMetadata[[paste0("score_", score)]]
+  if (min(score_val, na.rm = TRUE) < 0 || max(score_val, na.rm = TRUE) > 1) {
+    list_pred_guides@elementMetadata[[paste0("score_", score)]] <- score_val %>%
+      {(. - min(., na.rm = TRUE))/(max(., na.rm = TRUE)-min(., na.rm = TRUE))}
+  }
+}
+
 # add score based on distance to TSS; lower dist = higher score
-list_pred_guides$score_tssdist <- unname(unlist(mclapply(
-  mc.cores = max_cores,
-  X = list_pred_guides$tssAnnotation,
-  FUN = function(x) 1-abs(x[["dist_to_tss"]])/max(abs(tss_window))
-)))
+list_pred_guides$score_tssdist <-  1-(abs(list_pred_guides$dist_to_tss)/max(abs(tss_window)))
 
 # add information on possible restriction sites
 if (!is.null(restriction_sites)) {
@@ -245,29 +259,6 @@ list_pred_guides <- list_pred_guides[filter_by_all]
 list_pred_guides$score_all <- list_pred_guides@elementMetadata[paste0("score_", score_methods)] %>%
   apply(1, weighted.mean, w = score_weights, na.rm = TRUE)
 
-# apply filtering by score
-if (!is.null(filter_top_n)) {
-  index_top_n <- tapply(
-    list_pred_guides$score_all %>% setNames(names(list_pred_guides)),
-    list_pred_guides$tx_name,
-    function(x) names(x)[order(x, decreasing = TRUE)][1:10]
-  ) %>%
-    unlist() %>%
-    unname()
-  messages <- append(messages, paste0(
-    "Removed ", length(list_pred_guides) - length(index_top_n),
-    " guide RNAs with low rank for on-target scores"
-  ))
-  list_pred_guides <- list_pred_guides[names(list_pred_guides) %in% index_top_n]
-} else if (!is.null(filter_score_threshold)) {
-  index_score <- list_pred_guides$score_all >= filter_score_threshold
-  list_pred_guides <- list_pred_guides[index_score]
-  messages <- append(messages, paste0(
-    "Removed ", length(list_pred_guides) - sum(index_score),
-    " guide RNAs with low rank for on-target scores"
-  ))
-}
-
 # reduce overlap: from each set of overlapping guides,
 # select the worst one by lowest mean score and remove it
 filter_overlaps <- function(guideset, guide_length = spacer_length) {
@@ -297,6 +288,29 @@ while (length(guides_filtered) > 0) {
   guides_filtered <- filter_overlaps(list_pred_guides)
 }
 
+# apply filtering by score
+if (!is.null(filter_top_n)) {
+  index_top_n <- tapply(
+    list_pred_guides$score_all %>% setNames(names(list_pred_guides)),
+    list_pred_guides$tx_name,
+    function(x) names(x)[order(x, decreasing = TRUE)][1:10]
+  ) %>%
+    unlist() %>%
+    unname()
+  messages <- append(messages, paste0(
+    "Removed ", length(list_pred_guides) - length(index_top_n),
+    " guide RNAs with low rank for on-target scores"
+  ))
+  list_pred_guides <- list_pred_guides[names(list_pred_guides) %in% index_top_n]
+} else if (!is.null(filter_score_threshold)) {
+  index_score <- list_pred_guides$score_all >= filter_score_threshold
+  list_pred_guides <- list_pred_guides[index_score]
+  messages <- append(messages, paste0(
+    "Removed ", length(list_pred_guides) - sum(index_score),
+    " guide RNAs with low rank for on-target scores"
+  ))
+}
+
 # print final numbers
 n_guides_removed <- n_guides_pre_filter - length(list_pred_guides)
 messages <- append(messages, "----------------------------------")
@@ -315,6 +329,7 @@ messages <- append(messages, paste0(
 df_pred_guides <- list_pred_guides %>%
   as.data.frame() %>%
   as_tibble() %>%
+  dplyr::select(-tssAnnotation) %>%
   mutate(
     width = spacer_length,
     start = ifelse(strand == "-", start + 1, start - 20),

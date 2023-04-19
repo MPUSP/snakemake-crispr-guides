@@ -46,6 +46,7 @@ Loaded required R packages:
 - `tidyverse`
 - `ggrepel`
 - `ggpubr`
+- `GGally`
 
 
 ```{r, echo = FALSE, warning = FALSE}
@@ -53,6 +54,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(ggrepel)
   library(ggpubr)
+  library(GGally)
 })
 ```
 
@@ -170,7 +172,10 @@ plot_n_guides <- df_n_guides %>%
 print(plot_n_guides)
 ```
 
-## Position, width, strand, and PAM site
+## Strand, width, position, and PAM site
+
+- Strand of guides is one of "+" (template strand) or "-" (non-template strand)
+
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 ggpubr::ggarrange(
@@ -197,12 +202,88 @@ ggpubr::ggarrange(
     custom_theme(),
 
   df_guides %>%
-    ggplot(aes(x = 1-score_tssdist)) +
+    ggplot(aes(x = dist_to_tss)) +
     geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
-    labs(x = "distance [fraction of search window]", y = "count", title = "Relative distance to TSS") +
+    labs(x = "distance [nt]", y = "count", title = "Relative distance to TSS") +
     custom_theme()
 
 )
+```
+
+## On-target scores
+
+- What is the distribution of on-target scores?
+- 'Good' distributions should be normally distributed between a range of 0 and 1
+- 'Bad' distributions are too narrow, indicating that the score is probably not useful to differentiate between high and low efficacy
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+df_guides %>%
+  select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "score",
+    values_to = "value",
+    names_transform = function(x) gsub("score_", "", x)
+  ) %>%
+  ggplot(aes(x = value)) +
+  geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
+  labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
+  facet_wrap( ~ score) +
+  custom_theme()
+```
+
+----------
+
+- What is the correlation between scores?
+- Depicted is the scatter plot of each score against each other, as well as the correlation coefficient _R_
+- It is not unusual that scores show a low degree of correlation with each other
+- However a slight positive correlation should be visible, a negative correlation would be problematic
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
+df_guides %>%
+  dplyr::select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
+  rename_with(.fn = function(x) gsub("score_", "", x)) %>%
+  ggpairs(aes(color = "score")) +
+  labs(x = "", y = "",
+    title = "Correlation of scores with each other",
+    subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R") +
+  custom_theme()
+```
+
+
+## Location of guide RNAs
+
+- The following figures show the position of guide RNAs on a selection of target genes
+- The first figure shows the distribution of all realtive guide RNA positions
+- The next figure shows a selection of the first 30 genes for the purpose of quality control
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+df_guides %>%
+  dplyr::count(dist_to_tss) %>%
+  ggplot(aes(x = dist_to_tss, y = n)) +
+  geom_col(fill = custom_colors[1]) +
+  geom_smooth(color = grey(0.3), fill = custom_colors[1]) +
+  labs(x = "", y = "",
+    title = "Distribution of all guide RNAs over the TSS window",
+    subtitle = "Bars are sgRNAs counts per position, ribbon is smoothed average") +
+  custom_theme()
+```
+
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
+df_guides %>%
+  filter(tx_name %in% unique(df_guides$tx_name)[1:10]) %>%
+  mutate(start = abs(start - tss_pos), end = abs(end -tss_pos)) %>%
+  mutate(tx_name = factor(tx_name, unique(tx_name))) %>%
+  ggplot(aes(x = start, y = 0, xend = end, yend = 0)) +
+  geom_segment() +
+  facet_wrap(~ tx_name, ncol = 1) +
+  coord_cartesian(ylim = c(-0.5, 0.5)) +
+  labs(x = "", y = "",
+    title = "Guide RNA location in TSS window, selected genes",
+    subtitle = "Arrow shows direction of the guide") +
+  custom_theme() +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 
 ----------
@@ -217,7 +298,7 @@ For issues, bugs, and feature requests please use the pipeline's [github page](h
 
 For all other feedback, contact the author(s):
 
-- Michael Jahn, PhD (author and maintainer): jahn@mpusp.mpg.decoy
+- Michael Jahn, PhD (author and maintainer): jahn@mpusp.mpg.de
 
 The pipeline is developed at the [Max Planck Unit for the Science of Pathogens](https://www.mpusp.mpg.de/), Berlin, Germany.
 
