@@ -19,6 +19,8 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
     - [Input data](#input-data)
     - [Execution](#execution)
     - [Parameters](#parameters)
+    - [Off-target scores](#off-target-scores)
+    - [On-target scores](#on-target-scores)
   - [Output](#output)
   - [Authors](#authors)
   - [References](#references)
@@ -182,6 +184,17 @@ This table lists all parameters that can be used to run the workflow.
 | filter_top_n           | numeric   | max number of guides to return            | `10`                                                              |
 | filter_score_threshold | numeric   | mean score to use as lower limit          | `Null`                                                            |
 
+### Off-target scores
+
+The pipeline maps each guide RNA to the target genome and -by default- counts the number of alternative alignments with 1, 2, 3, or 4 mismatches. All guide RNAs that map to any other position including up to 4 allowed mismatches is removed.
+
+### On-target scores
+
+The list of available on-target scores in the [R crisprScore package](https://github.com/crisprVerse/crisprScore) is larger than the different scores included by default. It is important to note that the computation of some scores does not necessarily make sense for the design of every CRISRP library. For example, several scores were obtained from analysis of Cas9 cutting efficiency in human cell lines. For such scores it is questionable if they are uesful for the design of a very differenr library, for example a dCas9 CRISPR inhibition library in bacteria.
+
+Another good reason to exclude some scores is the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed via `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
+
+Users can look up all available scores on the [R crisprScore github page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the weighted mean of all single scores and the weights can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
 
 ## Output
 
