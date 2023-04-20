@@ -9,7 +9,7 @@ design_guides:
   tss_window:  [0, 500]
   circular:  False
   canonical:  True
-  both_strands:  True
+  strands:  "both"
   spacer_length:  20
   guide_aligner:  "biostrings"
   crispr_enzyme:  "SpCas9"
@@ -22,4 +22,4 @@ design_guides:
   filter_score_threshold:  Null
 
 visualize_guides:
-  show_all: False
+  show_examples: 10

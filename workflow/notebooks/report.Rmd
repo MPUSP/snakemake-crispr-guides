@@ -134,6 +134,11 @@ The displayed parameters are taken from the pipelines `config.yml` file.
 *NOTE: tables are only rendered in HTML output but not PDF.*
 
 ```{r, echo = FALSE}
+# import some required parameters
+tss_window <- snakemake@config$design_guides$tss_window
+n_examples <- snakemake@config$visualize_guides$show_examples
+
+# show all parameters for pipeline
 list_config <- read_lines("config/config.yml")
 list_config <- gsub("\"", "", list_config)
 print(list_config)
@@ -156,17 +161,23 @@ df_n_guides <- df_guides %>%
   summarize(n_guides = n()) %>%
   count(n_guides)
 
-print(paste0("Total number of targets (genes) with predicted guide RNAs: ",
-  length(unique(df_guides$tx_name))))
+print(paste0(
+  "Total number of targets (genes) with predicted guide RNAs: ",
+  length(unique(df_guides$tx_name))
+))
 
-print(paste0("Total number of predicted guide RNAs: ",
-  nrow(df_guides)))
+print(paste0(
+  "Total number of predicted guide RNAs: ",
+  nrow(df_guides)
+))
 
 plot_n_guides <- df_n_guides %>%
   ggplot(aes(x = n_guides, y = n)) +
   geom_col(color = "white", fill = custom_colors[1]) +
-  labs(x = "guides per target", y = "count",
-    title = "Number of predicted guide RNAs per target") +
+  labs(
+    x = "guides per target", y = "count",
+    title = "Number of predicted guide RNAs per target"
+  ) +
   custom_theme()
 
 print(plot_n_guides)
@@ -179,34 +190,29 @@ print(plot_n_guides)
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 ggpubr::ggarrange(
-
   df_guides %>%
     count(strand) %>%
     ggplot(aes(x = factor(strand), y = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
     labs(x = "strand", y = "count", title = "Guides per strand") +
     custom_theme(),
-
   df_guides %>%
     count(width) %>%
     ggplot(aes(x = factor(width), y = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
     labs(x = "width", y = "count", title = "Width distribution of guides") +
     custom_theme(),
-
   df_guides %>%
     count(pam) %>%
     ggplot(aes(x = factor(pam), y = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
     labs(x = "pam", y = "count", title = "PAM sequence of guides") +
     custom_theme(),
-
   df_guides %>%
     ggplot(aes(x = dist_to_tss)) +
     geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
     labs(x = "distance [nt]", y = "count", title = "Relative distance to TSS") +
     custom_theme()
-
 )
 ```
 
@@ -228,7 +234,7 @@ df_guides %>%
   ggplot(aes(x = value)) +
   geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
   labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
-  facet_wrap( ~ score) +
+  facet_wrap(~score) +
   custom_theme()
 ```
 
@@ -244,9 +250,11 @@ df_guides %>%
   dplyr::select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
   rename_with(.fn = function(x) gsub("score_", "", x)) %>%
   ggpairs(aes(color = "score")) +
-  labs(x = "", y = "",
+  labs(
+    x = "", y = "",
     title = "Correlation of scores with each other",
-    subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R") +
+    subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
+  ) +
   custom_theme()
 ```
 
@@ -262,27 +270,60 @@ df_guides %>%
   dplyr::count(dist_to_tss) %>%
   ggplot(aes(x = dist_to_tss, y = n)) +
   geom_col(fill = custom_colors[1]) +
-  geom_smooth(color = grey(0.3), fill = custom_colors[1]) +
-  labs(x = "", y = "",
+  geom_smooth(method = 'loess', formula = y ~ x,
+    color = grey(0.3), fill = custom_colors[1]) +
+  labs(
+    x = "", y = "",
     title = "Distribution of all guide RNAs over the TSS window",
-    subtitle = "Bars are sgRNAs counts per position, ribbon is smoothed average") +
+    subtitle = "Bars are sgRNAs counts per position, ribbon is smoothed average"
+  ) +
   custom_theme()
 ```
 
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = 10}
 df_guides %>%
-  filter(tx_name %in% unique(df_guides$tx_name)[1:10]) %>%
-  mutate(start = abs(start - tss_pos), end = abs(end -tss_pos)) %>%
-  mutate(tx_name = factor(tx_name, unique(tx_name))) %>%
-  ggplot(aes(x = start, y = 0, xend = end, yend = 0)) +
-  geom_segment() +
-  facet_wrap(~ tx_name, ncol = 1) +
+  filter(tx_name %in% unique(df_guides$tx_name)[1:n_examples]) %>%
+  mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
+    factor(., unique(.))) %>%
+  mutate(
+    xstart = case_when(
+      tss_strand == "+" & strand == "+" ~ start - tss_pos,
+      tss_strand == "+" & strand == "-" ~ end - tss_pos,
+      tss_strand == "-" & strand == "-" ~ -1 * (end - tss_pos),
+      tss_strand == "-" & strand == "+" ~ -1 * (start - tss_pos),
+    ),
+    xend = case_when(
+      tss_strand == "+" & strand == "+" ~ end - tss_pos,
+      tss_strand == "+" & strand == "-" ~ start - tss_pos,
+      tss_strand == "-" & strand == "-" ~ -1 * (start - tss_pos),
+      tss_strand == "-" & strand == "+" ~ -1 * (end - tss_pos),
+    )
+  ) %>%
+  mutate(y = ifelse(strand == tss_strand, 0.25, -0.25)) %>%
+  ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
+  geom_segment(
+    x = tss_window[1], y = 0, xend = 1.05 * tss_window[2], yend = 0,
+    linewidth = 1.5, color = grey(0.7), arrow = arrow(
+      angle = 30, length = unit(0.06, "inches"),
+      type = "closed"
+    )
+  ) +
+  geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
+    linewidth = 1.5, arrow = arrow(
+      angle = 30, length = unit(0.03, "inches"),
+      type = "closed"
+    )
+  ) +
+  facet_wrap(~tx_name, ncol = 1) +
   coord_cartesian(ylim = c(-0.5, 0.5)) +
-  labs(x = "", y = "",
-    title = "Guide RNA location in TSS window, selected genes",
-    subtitle = "Arrow shows direction of the guide") +
-  custom_theme() +
+  labs(
+    x = "distance to TSS [nt]", y = "",
+    title = "Guide RNA location in TSS window, for selected genes",
+    subtitle = "Arrows show direction of the guide. Note that genes on the '-' strand are shown as reverse-complement"
+  ) +
+  custom_theme(legend.position = 0) +
+  scale_color_manual(values = custom_colors[1:2]) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 ```
 

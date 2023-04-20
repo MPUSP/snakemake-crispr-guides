@@ -70,7 +70,7 @@ data(list = c(crispr_enzyme), package = "crisprBase")
 list_pred_guides <- findSpacers(
   x = genome_dna,
   canonical = canonical,
-  both_strands = both_strands,
+  both_strands = TRUE,
   spacer_len = spacer_length,
   crisprNuclease = get(crispr_enzyme)
 )
@@ -86,20 +86,13 @@ list_pred_guides <- addTssAnnotation(
   tss_window = tss_window
 )
 
-# Remove all guides that target not within a TSS window
+# remove all guides that target not within a TSS window
 index_non_target <- unlist(mclapply(
   mc.cores = max_cores,
   X = list_pred_guides$tssAnnotation,
   FUN = nrow
 ))
 list_pred_guides <- list_pred_guides[index_non_target == 1]
-
-# add cds/transcript name as additional column
-list_pred_guides$tx_name <- unname(unlist(mclapply(
-  mc.cores = max_cores,
-  X = list_pred_guides$tssAnnotation,
-  FUN = function(x) x[["tx_name"]]
-)))
 
 # add distance to transcription start site (TSS) and other
 # target gene information
@@ -194,8 +187,25 @@ for (seed_pattern in bad_seeds) {
 # guides are filtered on A) hard boundaries
 # and B) ranked by off-/on-target scores
 
-# filter by GC content
+# filter by strand
 n_guides_pre_filter <- length(list_pred_guides)
+if (strands != "both") {
+  if (strands == "coding") {
+    filter_strand <- strand(list_pred_guides) != list_pred_guides$tss_strand
+  } else if (strands == "template") {
+    filter_strand <- strand(list_pred_guides) == list_pred_guides$tss_strand
+  } else {
+    stop("parameter 'strands' must be one of 'coding', 'template', or 'both'")
+  }
+  messages <- append(messages, paste0(
+    "Removed ", sum(!filter_strand),
+    " guide RNAs not targeting the ", strands, " strand"
+  ))
+} else {
+  filter_strand <- rep(TRUE, length(list_pred_guides))
+}
+
+# filter by GC content
 filter_gc_low <- list_pred_guides$percentGC >= gc_content_range[1]
 filter_gc_high <- list_pred_guides$percentGC <= gc_content_range[2]
 
@@ -246,7 +256,8 @@ messages <- append(messages, paste0(
 ))
 
 # apply filters
-filter_by_all <- filter_gc_low &
+filter_by_all <- filter_strand &
+  filter_gc_low &
   filter_gc_high &
   filter_polyt &
   filter_startg &
@@ -293,10 +304,11 @@ if (!is.null(filter_top_n)) {
   index_top_n <- tapply(
     list_pred_guides$score_all %>% setNames(names(list_pred_guides)),
     list_pred_guides$tx_name,
-    function(x) names(x)[order(x, decreasing = TRUE)][1:10]
+    function(x) names(x)[order(x, decreasing = TRUE)][1:filter_top_n]
   ) %>%
-    unlist() %>%
-    unname()
+    unlist %>%
+    unname %>%
+    na.omit
   messages <- append(messages, paste0(
     "Removed ", length(list_pred_guides) - length(index_top_n),
     " guide RNAs with low rank for on-target scores"
@@ -307,7 +319,8 @@ if (!is.null(filter_top_n)) {
   list_pred_guides <- list_pred_guides[index_score]
   messages <- append(messages, paste0(
     "Removed ", length(list_pred_guides) - sum(index_score),
-    " guide RNAs with low rank for on-target scores"
+    " guide RNAs falling below the on-target score threshold of ",
+    filter_score_threshold
   ))
 }
 
