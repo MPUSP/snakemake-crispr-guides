@@ -112,8 +112,8 @@ if (guide_aligner == "biostrings") {
     list_pred_guides,
     ceiling(
       seq_along(list_pred_guides) /
-      (length(list_pred_guides) /
-      max_cores)
+        (length(list_pred_guides) /
+          max_cores)
     )
   )
 
@@ -147,20 +147,31 @@ list_pred_guides <- crisprDesign::addOffTargetScores(list_pred_guides)
 # add ON target scores based on spacer and protospacer sequence
 list_pred_guides <- crisprDesign::addOnTargetScores(
   list_pred_guides,
-  methods = setdiff(score_methods, "tssdist")
+  methods = setdiff(score_methods, c("tssdist", "genrich"))
 )
 
 # rescale scores to a range between 0 and 1 if they exceed this range
-for (score in setdiff(score_methods, "tssdist")) {
+rescale_score <- function(x) {
+  (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+}
+for (score in setdiff(score_methods, c("tssdist", "genrich"))) {
   score_val <- list_pred_guides@elementMetadata[[paste0("score_", score)]]
   if (min(score_val, na.rm = TRUE) < 0 || max(score_val, na.rm = TRUE) > 1) {
     list_pred_guides@elementMetadata[[paste0("score_", score)]] <- score_val %>%
-      {(. - min(., na.rm = TRUE))/(max(., na.rm = TRUE)-min(., na.rm = TRUE))}
+      rescale_score()
   }
 }
 
 # add score based on distance to TSS; lower dist = higher score
-list_pred_guides$score_tssdist <-  1-(abs(list_pred_guides$dist_to_tss)/max(abs(tss_window)))
+list_pred_guides$score_tssdist <- 1 - (abs(list_pred_guides$dist_to_tss) / max(abs(tss_window)))
+
+# add score based on G enrichement in seed region (pos -4 to -14 from PAM),
+# see Miao & Jahn et al., The Plant Cell, 2023
+list_pred_guides$score_genrich <- list_pred_guides$protospacer %>%
+  subseq(start = spacer_length - 13, end = spacer_length - 3) %>%
+  letterFrequency("G", as.prob = TRUE) %>%
+  as.numeric %>%
+  rescale_score
 
 # add information on possible restriction sites
 if (!is.null(restriction_sites)) {
@@ -306,9 +317,9 @@ if (!is.null(filter_top_n)) {
     list_pred_guides$tx_name,
     function(x) names(x)[order(x, decreasing = TRUE)][1:filter_top_n]
   ) %>%
-    unlist %>%
-    unname %>%
-    na.omit
+    unlist() %>%
+    unname() %>%
+    na.omit()
   messages <- append(messages, paste0(
     "Removed ", length(list_pred_guides) - length(index_top_n),
     " guide RNAs with low rank for on-target scores"
