@@ -5,3 +5,4 @@ dependencies:
  - conda-forge::r-ggrepel=0.9.3
  - conda-forge::r-rstatix=0.7.2
  - conda-forge::r-ggpubr=0.6.0
+ - conda-forge::r-ggally=2.1.2
