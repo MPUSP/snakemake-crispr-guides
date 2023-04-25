@@ -1,0 +1,7 @@
+name: bsgenome
+dependencies:
+ - conda-forge::r-tidyverse=2.0.0
+ - conda-forge::r-devtools
+ - bioconda::bioconductor-biostrings=2.66.0
+ - bioconda::bioconductor-genomicfeatures=1.50.2
+ - bioconda::bioconductor-bsgenome=1.66.3

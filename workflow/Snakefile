@@ -62,6 +62,22 @@ rule bowtie_index:
         "bowtie2-build {input} {output.path}/index > {log.path} 2>&1"
 
 
+# module to create BSgenome
+# -----------------------------------------------------
+rule bsgenome:
+    input:
+        fasta=rules.get_genome.output.fasta,
+        gff=rules.get_genome.output.gff,
+    output:
+        path=directory("results/bsgenome"),
+    conda:
+        "envs/bsgenome.yml"
+    log:
+        path="results/bsgenome/log.txt",
+    script:
+        "scripts/create_bsgenome.R"
+
+
 # module to design guide RNAs using R crisprDesign
 # -----------------------------------------------------
 rule design_guides:
