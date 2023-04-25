@@ -125,9 +125,15 @@ BiocManager::install("GenomeInfoDbData")
 
 The workflow requires the following input:
 
-1. An NCBI Refseq ID, e.g. `GCF_000006945.2`. Find your genome assembly and ID on [NCBI genomes](https://www.ncbi.nlm.nih.gov/data-hub/genome/)
+1. An NCBI Refseq ID, e.g. `GCF_000006945.2`. Find your genome assembly and corresponding ID on [NCBI genomes](https://www.ncbi.nlm.nih.gov/data-hub/genome/)
 2. OR use a custom pair of `*.fasta` file and `*.gff` file that describe the genome of choice
 
+Important requirements when using custom `*.fasta` and `*.gff` files:
+
+- `*.gff` genome annotation must have the same chromosome/region name as the `*.fasta` file (example: `NC_003197.2`)
+- `*.gff` genome annotation must have `gene` and `CDS` type annotation that is automatically parsed to extract transcripts
+- all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
+- but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
 
 ### Execution
 
@@ -186,6 +192,8 @@ This table lists all parameters that can be used to run the workflow.
 | bad_seeds              | character | sequences to omit in seed region         | `["ACCCA", "ATACT", "TGGAA"]`   |
 | filter_top_n           | numeric   | max number of guides to return           | `10`                            |
 | filter_score_threshold | numeric   | mean score to use as lower limit         | `Null`                          |
+| VISUALIZE_GUIDES       |           |                                          |                                 |
+| show_examples          | numeric   | number of genes to show guide position   | `10`                            |
 
 ### Off-target scores
 

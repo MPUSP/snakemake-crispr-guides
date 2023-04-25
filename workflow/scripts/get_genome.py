@@ -108,7 +108,7 @@ elif input_database.lower() == "manual":
         # export fasta and gff files
         with open(output_fasta, "w") as fasta_out:
             fasta_out.write(fasta)
-        with open({output_gff}, "w") as gff_out:
+        with open(output_gff, "w") as gff_out:
             gff_out.write(gff)
 else:
     error += ["The parameter 'database' is none of 'ncbi', 'manual'"]

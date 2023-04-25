@@ -30,8 +30,10 @@ messages <- c("importing genome sequence and annotation")
 genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
+genome_seqlevels <- str_extract(names(genome_dna), "^NC\\_[0-9]*\\.[0-9]*")
 genome_name <- str_remove_all(names(genome_dna)[1], "^NC\\_[0-9]*\\.[0-9]* |\\,.*")
 seqinfo_genome <- seqinfo(genome_dna)
+seqlevels(seqinfo_genome) <- genome_seqlevels
 isCircular(seqinfo_genome) <- rep_along(seqlevels(seqinfo_genome), FALSE)
 genome(seqinfo_genome) <- genome_name
 
@@ -41,8 +43,12 @@ txdb <- makeTxDbFromGFF(
 )
 
 # check if sequence annotation is identical for sequence and annotation
-if (any(seqlevels(seqinfo_genome) != seqlevels(txdb))) {
-  seqlevels(seqinfo_genome) <- seqlevels(txdb)
+if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
+  stop(
+    paste0("the following chromosome(s) are annotated in GFF file but not in FASTA sequence: ",
+      setdiff(seqlevels(seqinfo_genome), seqlevels(txdb)))
+  )
+} else {
   seqinfo(genome_dna) <- seqinfo_genome
 }
 
