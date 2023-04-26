@@ -109,6 +109,13 @@ list_pred_guides@elementMetadata <- cbind(
   df_tss_annot
 )
 
+# remove all guides that are beyond the 3'-end of the target gene
+# (even if they lie within the TSS window)
+list_tx <- transcripts(txdb)
+list_tx_width <- setNames(width(list_tx), list_tx$tx_name)
+list_pred_guides$tx_width <- list_tx_width[list_pred_guides$tss_id]
+list_pred_guides <- list_pred_guides[list_pred_guides$dist_to_tss <= list_pred_guides$tx_width]
+
 # add spacer and PAM sequence features
 list_pred_guides <- addSequenceFeatures(list_pred_guides)
 

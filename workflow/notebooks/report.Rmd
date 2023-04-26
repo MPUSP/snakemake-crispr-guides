@@ -247,7 +247,7 @@ df_guides %>%
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 df_guides %>%
-  dplyr::select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
+  select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
   rename_with(.fn = function(x) gsub("score_", "", x)) %>%
   ggpairs(aes(color = "score")) +
   labs(
@@ -270,8 +270,10 @@ df_guides %>%
   dplyr::count(dist_to_tss) %>%
   ggplot(aes(x = dist_to_tss, y = n)) +
   geom_col(fill = custom_colors[1]) +
-  geom_smooth(method = 'loess', formula = y ~ x,
-    color = grey(0.3), fill = custom_colors[1]) +
+  geom_smooth(
+    method = "loess", formula = y ~ x,
+    color = grey(0.3), fill = custom_colors[1]
+  ) +
   labs(
     x = "", y = "",
     title = "Distribution of all guide RNAs over the TSS window",
@@ -303,8 +305,11 @@ df_guides %>%
   mutate(y = ifelse(strand == tss_strand, 0.25, -0.25)) %>%
   ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
   geom_segment(
-    x = tss_window[1], y = 0, xend = 1.05 * tss_window[2], yend = 0,
-    linewidth = 1.5, color = grey(0.7), arrow = arrow(
+    x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
+    linewidth = 2, color = grey(0.7)
+  ) +
+  geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
+    linewidth = 1.33, color = grey(0.3), arrow = arrow(
       angle = 30, length = unit(0.06, "inches"),
       type = "closed"
     )
@@ -316,11 +321,12 @@ df_guides %>%
     )
   ) +
   facet_wrap(~tx_name, ncol = 1) +
-  coord_cartesian(ylim = c(-0.5, 0.5)) +
+  coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
   labs(
     x = "distance to TSS [nt]", y = "",
     title = "Guide RNA location in TSS window, for selected genes",
-    subtitle = "Arrows show direction of the guide. Note that genes on the '-' strand are shown as reverse-complement"
+    subtitle = paste0("Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
+      "Note that genes on the '-' strand are shown as reverse-complement")
   ) +
   custom_theme(legend.position = 0) +
   scale_color_manual(values = custom_colors[1:2]) +
