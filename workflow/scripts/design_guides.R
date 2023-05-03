@@ -403,6 +403,18 @@ messages <- append(messages, paste0(
   "A final list of ", length(list_pred_guides), " guide RNAs was exported"
 ))
 
+if (!is.null(target_region)) {
+  list_tx_total <- list_tx[seqnames(list_tx) %in% target_region]$tx_name
+} else {
+  list_tx_total <- list_tx$tx_name
+}
+list_no_guides <- setdiff(list_tx_total, unique(list_pred_guides$tx_name))
+if (length(list_no_guides) >= 1) {
+  messages <- append(messages, paste0(
+    "guide RNAs were not found for ", length(list_no_guides),
+    " targets: ", paste(list_no_guides, collapse = ", ")
+  ))
+}
 
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
