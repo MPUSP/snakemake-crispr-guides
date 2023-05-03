@@ -172,8 +172,9 @@ print(paste0(
 ))
 
 plot_n_guides <- df_n_guides %>%
-  ggplot(aes(x = n_guides, y = n)) +
+  ggplot(aes(x = n_guides, y = n, label = n)) +
   geom_col(color = "white", fill = custom_colors[1]) +
+  geom_text(size = 3.5, nudge_y = 3, color = grey(0.5)) + 
   labs(
     x = "guides per target", y = "count",
     title = "Number of predicted guide RNAs per target"
@@ -192,20 +193,23 @@ print(plot_n_guides)
 ggpubr::ggarrange(
   df_guides %>%
     count(strand) %>%
-    ggplot(aes(x = factor(strand), y = n)) +
+    ggplot(aes(x = factor(strand), y = n, label = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
+    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
     labs(x = "strand", y = "count", title = "Guides per strand") +
     custom_theme(),
   df_guides %>%
     count(width) %>%
-    ggplot(aes(x = factor(width), y = n)) +
+    ggplot(aes(x = factor(width), y = n, label = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
+    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
     labs(x = "width", y = "count", title = "Width distribution of guides") +
     custom_theme(),
   df_guides %>%
     count(pam) %>%
-    ggplot(aes(x = factor(pam), y = n)) +
+    ggplot(aes(x = factor(pam), y = n, label = n)) +
     geom_col(color = "white", fill = custom_colors[1]) +
+    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
     labs(x = "pam", y = "count", title = "PAM sequence of guides") +
     custom_theme(),
   df_guides %>%
@@ -255,6 +259,8 @@ df_guides %>%
     title = "Correlation of scores with each other",
     subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
   ) +
+  scale_color_manual(values = custom_colors) +
+  scale_fill_manual(values = custom_colors) +
   custom_theme()
 ```
 
