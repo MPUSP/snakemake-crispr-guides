@@ -1,5 +1,6 @@
 name: report
 dependencies:
+ - conda-forge::r-base=4.2.3
  - conda-forge::r-essentials=4.2
  - conda-forge::r-tidyverse=2.0.0
  - conda-forge::r-ggrepel=0.9.3

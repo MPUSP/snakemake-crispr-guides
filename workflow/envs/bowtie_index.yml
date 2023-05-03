@@ -1,3 +1,4 @@
 name: bowtie_index
 dependencies:
+ - conda-forge:libgcc-ng=12.2.0
  - bioconda::bowtie2=2.5.1
