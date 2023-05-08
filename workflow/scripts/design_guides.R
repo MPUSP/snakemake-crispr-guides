@@ -22,7 +22,7 @@ for (param in names(sm_params)) {
   assign(param, sm_params[[param]], envir = .GlobalEnv)
 }
 output_top <- snakemake@output[["guideRNAs_top"]]
-
+output_fail <- snakemake@output[["guideRNAs_fail"]]
 
 # STAGE 1 : FILE PREPARATION
 # ------------------------------
@@ -428,9 +428,14 @@ df_pred_guides <- list_pred_guides %>%
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
   )
-
 write_csv(df_pred_guides, output_top)
 
+# export table with transcripts where no guide is available
+df_no_guides <- list_tx[list_tx$tx_name %in% list_no_guides] %>%
+  as.data.frame
+write_csv(df_no_guides, output_fail)
+
+# export log
 write_lines(
   file = snakemake@log[["path"]],
   x = paste0("DESIGN_GUIDES: ", messages)
