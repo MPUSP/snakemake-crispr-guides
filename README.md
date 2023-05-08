@@ -36,9 +36,9 @@ If you use this workflow in a paper, don't forget to give credits to the author(
 ## Workflow overview
 
 <!-- include logo-->
-<!-- <img src="docs/images/logo.png" align="right" /> -->
+<img src="resources/images/overview_guide_design.svg" align="center" />
 
----
+----------
 
 This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to even simpler web resources such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
 
