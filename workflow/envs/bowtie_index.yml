@@ -1,7 +1,7 @@
 name: bowtie_index
 channels:
-  - conda-forge
-  - bioconda
-  - defaults
+ - conda-forge
+ - bioconda
+ - defaults
 dependencies:
  - bowtie2=2.5.1
