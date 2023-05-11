@@ -187,7 +187,7 @@ This table lists all parameters that can be used to run the workflow.
 | crispr_enzyme          | character | CRISPR enzyme ID                         | `SpCas9`                        |
 | gc_content_range       | numeric   | range of allowed GC content              | `[30, 70]`                      |
 | score_methods          | character | see _crisprScore_ package                | default scores are listed below |
-| score_weights          | numeric   | opt. weights when calculating mean score | `[1, 1, 1, 1, 1]`               |
+| score_weights          | numeric   | opt. weights when calculating mean score | `[1, 1, 1, 1, 1, 1]`               |
 | restriction_sites      | character | sequences to omit in entire guide        | `Null`                          |
 | bad_seeds              | character | sequences to omit in seed region         | `["ACCCA", "ATACT", "TGGAA"]`   |
 | filter_top_n           | numeric   | max number of guides to return           | `10`                            |
@@ -239,6 +239,7 @@ The workflow generates the following output from its modules:
 <summary>design_guides</summary>
 
 - `guideRNAs_top.csv`: Table with top N guide RNAs per gene remaining after filtering
+- `guideRNAs_fail.csv`: Table with genes/targets where no guide RNAs were designed. Typical reasons for failure are very short target sites, or overlapping annotation with other genes/targets such that candidate guide RNAs would target multiple annotated genes.
 - `log.txt`: Log file for this module
 
 </details>

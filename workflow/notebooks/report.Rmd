@@ -60,6 +60,10 @@ suppressPackageStartupMessages({
 
 
 ```{r, echo = FALSE}
+# import some required parameters
+tss_window <- snakemake@config$design_guides$tss_window
+n_examples <- snakemake@config$visualize_guides$show_examples
+
 # custom ggplot2 theme that is reused for all later plots
 custom_colors <- c("#E7298A", "#66A61E", "#E6AB02", "#7570B3", "#B3B3B3", "#1B9E77", "#D95F02", "#A6761D")
 custom_range <- function(n = 5) {
@@ -93,6 +97,7 @@ list_fontpars <- list(face = "plain", size = 14)
 # default figure size
 figwidth <- 7.0
 figheight <- 4.5
+figheight2 <- 1 + (n_examples * 0.75)
 
 # function to export an image as svg and png
 save_plot <- function(pl, path = "../figures/", width = 6, height = 6) {
@@ -131,13 +136,7 @@ head(df_guides)
 Show parameters that were used for guide RNA prediction.
 The displayed parameters are taken from the pipelines `config.yml` file.
 
-*NOTE: tables are only rendered in HTML output but not PDF.*
-
 ```{r, echo = FALSE}
-# import some required parameters
-tss_window <- snakemake@config$design_guides$tss_window
-n_examples <- snakemake@config$visualize_guides$show_examples
-
 # show all parameters for pipeline
 list_config <- read_lines("config/config.yml")
 list_config <- gsub("\"", "", list_config)
@@ -253,14 +252,15 @@ df_guides %>%
 df_guides %>%
   select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
   rename_with(.fn = function(x) gsub("score_", "", x)) %>%
-  ggpairs(aes(color = "score")) +
+  ggpairs(aes(color = "score", shape = factor(1))) +
   labs(
     x = "", y = "",
     title = "Correlation of scores with each other",
     subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
   ) +
-  scale_color_manual(values = custom_colors) +
+  scale_color_manual(values = alpha(custom_colors, 0.5)) +
   scale_fill_manual(values = custom_colors) +
+  scale_shape_manual(values = 20) +
   custom_theme()
 ```
 
@@ -289,7 +289,7 @@ df_guides %>%
 ```
 
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = 10}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
 df_guides %>%
   filter(tx_name %in% unique(df_guides$tx_name)[1:n_examples]) %>%
   mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
@@ -312,17 +312,17 @@ df_guides %>%
   ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
   geom_segment(
     x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
-    linewidth = 2, color = grey(0.7)
+    linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
   ) +
   geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
-    linewidth = 1.33, color = grey(0.3), arrow = arrow(
-      angle = 30, length = unit(0.06, "inches"),
+    linewidth = 1.33, color = grey(0.3), lineend = "square", linejoin = "mitre", arrow = arrow(
+      angle = 30, length = unit(0.02, "inches"),
       type = "closed"
     )
   ) +
   geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
-    linewidth = 1.5, arrow = arrow(
-      angle = 30, length = unit(0.03, "inches"),
+    linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
+      angle = 30, length = unit(0.01, "inches"),
       type = "closed"
     )
   ) +
@@ -330,7 +330,7 @@ df_guides %>%
   coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
   labs(
     x = "distance to TSS [nt]", y = "",
-    title = "Guide RNA location in TSS window, for selected genes",
+    title = paste0("Guide RNA location in TSS window, for the first ", n_examples, " genes"),
     subtitle = paste0("Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
       "Note that genes on the '-' strand are shown as reverse-complement")
   ) +

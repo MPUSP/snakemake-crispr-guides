@@ -22,4 +22,4 @@ design_guides:
   filter_score_threshold:  Null
 
 visualize_guides:
-  show_examples: 10
+  show_examples: 20
