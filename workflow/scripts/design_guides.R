@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
   library(GenomeInfoDbData)
+  library(GenomicRanges)
   library(GenomicFeatures)
   library(crisprBase)
   library(crisprDesign)
@@ -21,7 +22,7 @@ for (param in names(sm_params)) {
   assign(param, sm_params[[param]], envir = .GlobalEnv)
 }
 output_top <- snakemake@output[["guideRNAs_top"]]
-
+output_fail <- snakemake@output[["guideRNAs_fail"]]
 
 # STAGE 1 : FILE PREPARATION
 # ------------------------------
@@ -30,8 +31,10 @@ messages <- c("importing genome sequence and annotation")
 genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
+genome_seqlevels <- str_extract(names(genome_dna), "^NC\\_[0-9]*\\.[0-9]*")
 genome_name <- str_remove_all(names(genome_dna)[1], "^NC\\_[0-9]*\\.[0-9]* |\\,.*")
 seqinfo_genome <- seqinfo(genome_dna)
+seqlevels(seqinfo_genome) <- genome_seqlevels
 isCircular(seqinfo_genome) <- rep_along(seqlevels(seqinfo_genome), FALSE)
 genome(seqinfo_genome) <- genome_name
 
@@ -41,8 +44,14 @@ txdb <- makeTxDbFromGFF(
 )
 
 # check if sequence annotation is identical for sequence and annotation
-if (any(seqlevels(seqinfo_genome) != seqlevels(txdb))) {
-  seqlevels(seqinfo_genome) <- seqlevels(txdb)
+if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
+  stop(
+    paste0(
+      "the following chromosome(s) are annotated in GFF file but not in FASTA sequence: ",
+      setdiff(seqlevels(seqinfo_genome), seqlevels(txdb))
+    )
+  )
+} else {
   seqinfo(genome_dna) <- seqinfo_genome
 }
 
@@ -75,33 +84,81 @@ list_pred_guides <- findSpacers(
   crisprNuclease = get(crispr_enzyme)
 )
 
-# extract (pseudo) transcription start sites
+# extract (pseudo) transcription start sites (TSS)
 list_tss <- resize(transcripts(txdb), width = 1)
 list_tss$ID <- list_tss$tx_name
 
-# map guides to transcripts
+# map guides to TSS windows
 list_pred_guides <- addTssAnnotation(
   list_pred_guides,
   list_tss,
   tss_window = tss_window
 )
 
-# remove all guides that target not within a TSS window
+# remove all guides that do not target within a TSS window
 index_non_target <- unlist(mclapply(
   mc.cores = max_cores,
   X = list_pred_guides$tssAnnotation,
   FUN = nrow
 ))
-list_pred_guides <- list_pred_guides[index_non_target == 1]
+list_pred_guides <- list_pred_guides[index_non_target != 0]
 
-# add distance to transcription start site (TSS) and other
-# target gene information
-df_tss_annot <- as.data.frame(list_pred_guides$tssAnnotation) %>%
-  dplyr::select(-group, -group_name, -chr, -strand)
+# clip TSS windows where the 5'-UTR extends into another transcript
+# then remove all guides that are beyond the 3'- or 5' end of the target gene
+list_tx <- transcripts(txdb)
+list_intergenic <-
+  {
+    start(list_tx) - c(1, end(list_tx[-length(list_tx)]))
+  } %>%
+  c(., unname(tail(seqlengths(txdb), 1) - tail(end(list_tx), 1))) %>%
+  replace(., . > abs(tss_window[1]), abs(tss_window[1])) %>%
+  replace(., . < tss_window[1] / 2, tss_window[1] / 2)
+max_5UTR_index <- seq_along(list_tx)
+max_5UTR_index[as.logical(strand(list_tx) == "-")] <-
+  max_5UTR_index[as.logical(strand(list_tx) == "-")] + 1
+max_5UTR <- list_intergenic[max_5UTR_index]
+list_tx_window <- flank(list_tx, max_5UTR)
+list_tx_window <- punion(list_tx, list_tx_window)
+list_tss_window <- punion(
+  flank(list_tss, abs(tss_window[1])),
+  resize(list_tss, width = tss_window[2])
+)
+
+# select only guides whose PAM overlaps with the TSS window
+list_tss_window <- pintersect(list_tss_window, list_tx_window)
+genome(list_tss_window) <- "custom"
+list_targets <- as.list(findOverlaps(
+  list_pred_guides, list_tss_window,
+  ignore.strand = TRUE
+))
+names(list_targets) <- names(list_pred_guides)
+list_targets_keep <- unlist(lapply(list_targets, length) == 1)
+list_pred_guides <- list_pred_guides[list_targets_keep]
+list_targets <- list_targets[list_targets_keep]
+
+# trim original TSS annotation to one entry per guide
+df_tss_annot <- list_pred_guides$tssAnnotation %>%
+  as_tibble() %>%
+  right_join(
+    by = c("group_name", "tx_id"),
+    enframe(
+      unlist(list_targets),
+      name = "group_name",
+      value = "tx_id"
+    )
+  ) %>%
+  dplyr::select(-group, -chr, -strand) %>%
+  mutate(tx_width = setNames(width(list_tx), list_tx$tx_id)[tx_id]) %>%
+  arrange(as.numeric(str_sub(group_name, 8, Inf)))
+
+# add modified TSS information to metadata
 list_pred_guides@elementMetadata <- cbind(
   list_pred_guides@elementMetadata,
   df_tss_annot
 )
+
+# remove guides where a transcript was mapped but not the right one
+list_pred_guides <- list_pred_guides[!is.na(list_pred_guides$tss_id)]
 
 # add spacer and PAM sequence features
 list_pred_guides <- addSequenceFeatures(list_pred_guides)
@@ -170,8 +227,8 @@ list_pred_guides$score_tssdist <- 1 - (abs(list_pred_guides$dist_to_tss) / max(a
 list_pred_guides$score_genrich <- list_pred_guides$protospacer %>%
   subseq(start = spacer_length - 13, end = spacer_length - 3) %>%
   letterFrequency("G", as.prob = TRUE) %>%
-  as.numeric %>%
-  rescale_score
+  as.numeric() %>%
+  rescale_score()
 
 # add information on possible restriction sites
 if (!is.null(restriction_sites)) {
@@ -346,6 +403,18 @@ messages <- append(messages, paste0(
   "A final list of ", length(list_pred_guides), " guide RNAs was exported"
 ))
 
+if (!is.null(target_region)) {
+  list_tx_total <- list_tx[seqnames(list_tx) %in% target_region]$tx_name
+} else {
+  list_tx_total <- list_tx$tx_name
+}
+list_no_guides <- setdiff(list_tx_total, unique(list_pred_guides$tx_name))
+if (length(list_no_guides) >= 1) {
+  messages <- append(messages, paste0(
+    "guide RNAs were not found for ", length(list_no_guides),
+    " targets: ", paste(list_no_guides, collapse = ", ")
+  ))
+}
 
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
@@ -359,9 +428,14 @@ df_pred_guides <- list_pred_guides %>%
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
   )
-
 write_csv(df_pred_guides, output_top)
 
+# export table with transcripts where no guide is available
+df_no_guides <- list_tx[list_tx$tx_name %in% list_no_guides] %>%
+  as.data.frame
+write_csv(df_no_guides, output_fail)
+
+# export log
 write_lines(
   file = snakemake@log[["path"]],
   x = paste0("DESIGN_GUIDES: ", messages)

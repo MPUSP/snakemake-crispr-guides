@@ -36,9 +36,9 @@ If you use this workflow in a paper, don't forget to give credits to the author(
 ## Workflow overview
 
 <!-- include logo-->
-<!-- <img src="docs/images/logo.png" align="right" /> -->
+<img src="resources/images/overview_guide_design.svg" align="center" />
 
----
+----------
 
 This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to even simpler web resources such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
 
@@ -125,9 +125,15 @@ BiocManager::install("GenomeInfoDbData")
 
 The workflow requires the following input:
 
-1. An NCBI Refseq ID, e.g. `GCF_000006945.2`. Find your genome assembly and ID on [NCBI genomes](https://www.ncbi.nlm.nih.gov/data-hub/genome/)
+1. An NCBI Refseq ID, e.g. `GCF_000006945.2`. Find your genome assembly and corresponding ID on [NCBI genomes](https://www.ncbi.nlm.nih.gov/data-hub/genome/)
 2. OR use a custom pair of `*.fasta` file and `*.gff` file that describe the genome of choice
 
+Important requirements when using custom `*.fasta` and `*.gff` files:
+
+- `*.gff` genome annotation must have the same chromosome/region name as the `*.fasta` file (example: `NC_003197.2`)
+- `*.gff` genome annotation must have `gene` and `CDS` type annotation that is automatically parsed to extract transcripts
+- all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
+- but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
 
 ### Execution
 
@@ -181,11 +187,13 @@ This table lists all parameters that can be used to run the workflow.
 | crispr_enzyme          | character | CRISPR enzyme ID                         | `SpCas9`                        |
 | gc_content_range       | numeric   | range of allowed GC content              | `[30, 70]`                      |
 | score_methods          | character | see _crisprScore_ package                | default scores are listed below |
-| score_weights          | numeric   | opt. weights when calculating mean score | `[1, 1, 1, 1, 1]`               |
+| score_weights          | numeric   | opt. weights when calculating mean score | `[1, 1, 1, 1, 1, 1]`               |
 | restriction_sites      | character | sequences to omit in entire guide        | `Null`                          |
 | bad_seeds              | character | sequences to omit in seed region         | `["ACCCA", "ATACT", "TGGAA"]`   |
 | filter_top_n           | numeric   | max number of guides to return           | `10`                            |
 | filter_score_threshold | numeric   | mean score to use as lower limit         | `Null`                          |
+| VISUALIZE_GUIDES       |           |                                          |                                 |
+| show_examples          | numeric   | number of genes to show guide position   | `10`                            |
 
 ### Off-target scores
 
@@ -231,6 +239,7 @@ The workflow generates the following output from its modules:
 <summary>design_guides</summary>
 
 - `guideRNAs_top.csv`: Table with top N guide RNAs per gene remaining after filtering
+- `guideRNAs_fail.csv`: Table with genes/targets where no guide RNAs were designed. Typical reasons for failure are very short target sites, or overlapping annotation with other genes/targets such that candidate guide RNAs would target multiple annotated genes.
 - `log.txt`: Log file for this module
 
 </details>

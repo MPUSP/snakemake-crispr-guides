@@ -89,6 +89,7 @@ rule design_guides:
         max_cores=workflow.cores,
     output:
         guideRNAs_top="results/design_guides/guideRNAs_top.csv",
+        guideRNAs_fail="results/design_guides/guideRNAs_fail.csv",
     conda:
         "envs/design_guides.yml"
     log:

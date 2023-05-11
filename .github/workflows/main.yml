@@ -2,10 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, dev, github_actions ]
   pull_request:
-    branches: [ main, dev ]
-
+    branches: [ main, dev, github_actions ]
 
 jobs:
   Formatting:
@@ -44,7 +43,7 @@ jobs:
       with:
         directory: .test
         snakefile: workflow/Snakefile
-        args: "--use-conda --show-failed-logs --cores 1 --conda-cleanup-pkgs cache --dry-run"
+        args: "--use-conda --show-failed-logs --cores 2 --conda-cleanup-pkgs cache --dryrun"
 
     - name: Test report
       uses: snakemake/snakemake-github-action@v1.24.0

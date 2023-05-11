@@ -1,4 +1,8 @@
 name: get_genome
+channels:
+ - conda-forge
+ - defaults
 dependencies:
- - conda-forge::python=3.9
- - conda-forge::ncbi-datasets-cli=14.13.2
+ - python=3.9
+ - unzip=6.0
+ - ncbi-datasets-cli=14.13.2

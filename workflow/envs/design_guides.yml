@@ -1,9 +1,13 @@
 name: design_guides
+channels:
+ - conda-forge
+ - bioconda
+ - defaults
 dependencies:
- - conda-forge::r-tidyverse=2.0.0
- - bioconda::bioconductor-biostrings=2.66.0
- - bioconda::bioconductor-genomicfeatures=1.50.2
- - bioconda::bioconductor-crisprbase=1.2.0
- - bioconda::bioconductor-crisprdesign=1.0.0
- - bioconda::bioconductor-crisprbwa=1.2.0
- - bioconda::bioconductor-crisprscore=1.2.0
+ - r-tidyverse=2.0.0
+ - bioconductor-biostrings=2.66.0
+ - bioconductor-genomicfeatures=1.50.2
+ - bioconductor-crisprbase=1.2.0
+ - bioconductor-crisprdesign=1.0.0
+ - bioconductor-crisprbwa=1.2.0
+ - bioconductor-crisprscore=1.2.0
