@@ -59,7 +59,7 @@ rule bowtie_index:
     log:
         path="results/bowtie_index/log.txt",
     shell:
-        "bowtie2-build {input} {output.path}/index > {log.path} 2>&1"
+        "bowtie-build {input} {output.path}/index > {log.path} 2>&1"
 
 
 # module to create BSgenome
