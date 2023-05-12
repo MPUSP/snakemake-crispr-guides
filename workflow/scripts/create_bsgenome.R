@@ -5,10 +5,8 @@ suppressPackageStartupMessages({
   library(devtools)
   library(Biostrings)
   library(GenomicFeatures)
+  library(BSgenome)
 })
-
-devtools::install_github("https://github.com/Bioconductor/BSgenome")
-library(BSgenome)
 
 # IMPORT GENOME
 # ------------------------------
@@ -62,22 +60,24 @@ seed_file <- c(
   "organism_biocview: custom_bsgenome",
   "BSgenomeObjname: custom_bsgenome",
   "seqfile_name: single_sequences.2bit",
-  # paste0("seqnames: ", "'single_sequences'"),#c('", paste(txdb$user_seqlevels, collapse = "', '"), "')"),
   paste0("seqs_srcdir: ", output, "/seqs_srcdir")
 )
 
 # export seed file
+messages <- append(messages, "exporting seed file")
 write_lines(
   file = paste0(output, "/bsgenome_seed_file.txt"),
   x = seed_file
 )
 
 # export sequence file
+messages <- append(messages, "exporting sequence files")
 for (seqs in seqlevels(genome_dna)) {
   genome_dna[seqs] %>%
     writeXStringSet(paste0(output, "/seqs_srcdir/", seqs, ".fa"), format = "fasta")
 }
 
+messages <- append(messages, "forging *.2bit file for BSgenome preparation")
 forgeSeqFiles(
   provider = "NCBI",
   genome = "ASM171558v1",
@@ -89,10 +89,13 @@ forgeSeqFiles(
   verbose = TRUE
 )
 
-forgeBSgenomeDataPkg(
-  x = paste0(output, "/bsgenome_seed_file.txt"),
-  destdir = output
-)
+# messages <- append(messages, "forging *.2bit file for BSgenome preparation")
+# forgeBSgenomeDataPkg(
+#   x = paste0(output, "/bsgenome_seed_file.txt"),
+#   destdir = output,
+#   replace = TRUE,
+#   verbose = TRUE
+# )
 
 # # install BSgenome package
 # devtools::install(paste0(
@@ -100,9 +103,8 @@ forgeBSgenomeDataPkg(
 #   str_remove_all(genome_common, " ")
 # ))
 
-
-# # export log file
-# write_lines(
-#   file = snakemake@log[["path"]],
-#   x = paste0("DESIGN_GUIDES: ", messages)
-# )
+# export log file
+write_lines(
+  file = snakemake@log[["path"]],
+  x = paste0("BSGENOME: ", messages)
+)

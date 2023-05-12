@@ -68,6 +68,7 @@ rule bsgenome:
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
+        bowtie_index=rules.bowtie_index.output.path,
     output:
         path=directory("results/bsgenome"),
     conda:

@@ -30,6 +30,7 @@ output_fail <- snakemake@output[["guideRNAs_fail"]]
 messages <- c("importing genome sequence and annotation")
 genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
+genome_index <- snakemake@input[["bowtie_index"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
 genome_seqlevels <- str_extract(names(genome_dna), "^NC\\_[0-9]*\\.[0-9]*")
 genome_name <- str_remove_all(names(genome_dna)[1], "^NC\\_[0-9]*\\.[0-9]* |\\,.*")
@@ -178,9 +179,9 @@ if (guide_aligner == "biostrings") {
     mc.cores = max_cores,
     X = list_pred_guides_chunks,
     FUN = function(guide_chunk) {
-      crisprDesign::addSpacerAlignments(
+      addSpacerAlignments(
         guide_chunk,
-        aligner = guide_aligner,
+        aligner = "biostrings",
         txObject = txdb,
         custom_seq = genome_dna,
         n_mismatches = 4,
@@ -190,12 +191,20 @@ if (guide_aligner == "biostrings") {
       )
     }
   )
-
   # merge all chunks to single guideSet again
   list_pred_guides <- Reduce("c", list_pred_guides_chunks)
-} else {
-  stop("Only 'biostrings' currently supported for off target search;
-    methods 'bowtie' and 'bwa' not yet implemented.")
+} else if (guide_aligner == "bowtie") {
+  remotes::install_local("results/BSgenomeSalmonellaenterica/")
+  library(BSgenomeSalmonellaenterica)
+  list_pred_guides <- addSpacerAlignments(
+    list_pred_guides,
+    aligner = "bowtie",
+    aligner_index = paste0(genome_index, "/index"),
+    bsgenome = BSgenomeSalmonellaenterica,
+    addSummary = TRUE,
+    n_mismatches = 3,
+    custom_seq = genome_dna,
+  )
 }
 
 # add OFF target scores based on alignment
@@ -432,7 +441,7 @@ write_csv(df_pred_guides, output_top)
 
 # export table with transcripts where no guide is available
 df_no_guides <- list_tx[list_tx$tx_name %in% list_no_guides] %>%
-  as.data.frame
+  as.data.frame()
 write_csv(df_no_guides, output_fail)
 
 # export log

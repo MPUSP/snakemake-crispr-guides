@@ -5,6 +5,7 @@ channels:
  - defaults
 dependencies:
  - r-tidyverse=2.0.0
+ - r-remotes
  - bioconductor-biostrings=2.66.0
  - bioconductor-genomicfeatures=1.50.2
  - bioconductor-crisprbase=1.2.0
