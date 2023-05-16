@@ -20,6 +20,7 @@ design_guides:
   bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
   filter_top_n:  10
   filter_score_threshold:  Null
+  filter_multi_targets: True
 
 visualize_guides:
-  show_examples: 10
+  show_examples: 20

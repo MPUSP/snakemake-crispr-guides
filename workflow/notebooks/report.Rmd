@@ -173,7 +173,7 @@ print(paste0(
 plot_n_guides <- df_n_guides %>%
   ggplot(aes(x = n_guides, y = n, label = n)) +
   geom_col(color = "white", fill = custom_colors[1]) +
-  geom_text(size = 3.5, nudge_y = 3, color = grey(0.5)) + 
+  geom_text(size = 3.5, nudge_y = max(df_n_guides$n)*0.03, color = grey(0.5)) + 
   labs(
     x = "guides per target", y = "count",
     title = "Number of predicted guide RNAs per target"
@@ -268,7 +268,7 @@ df_guides %>%
 ## Location of guide RNAs
 
 - The following figures show the position of guide RNAs on a selection of target genes
-- The first figure shows the distribution of all realtive guide RNA positions
+- The first figure shows the distribution of all relative guide RNA positions
 - The next figure shows a selection of the first 30 genes for the purpose of quality control
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
@@ -337,6 +337,37 @@ df_guides %>%
   custom_theme(legend.position = 0) +
   scale_color_manual(values = custom_colors[1:2]) +
   theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+```
+
+## Guides with multiple targets
+
+ - Some guides target several genes/elements within a genome
+ - these multi-target guides can be off-targets (not desired)
+ - or they can target duplicated genes/element (desired)
+ - if multi-target guides are to be included or not can be controlled with the `filter_multi_targets` config parameter (default: `TRUE`)
+ - the following figure gives an overview about the number of multi-target guides, if they were not filtered
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("multi_target" %in% colnames(df_guides)) {
+  df_guides %>%
+    mutate(multi_target = ifelse(multi_target, "multi-target", "single target")) %>%
+    group_by(multi_target) %>%
+    count(seqnames) %>%
+    ggplot(aes(x = n, y = seqnames, fill = multi_target, label = n)) +
+    geom_col(position = position_dodge2()) +
+    geom_text(aes(color = multi_target, x = n + max(n)/30),
+      position = position_dodge(0.9), size = 3.5) + 
+    labs(
+      x = "", y = "",
+      title = "Multi-target guides per chromosome",
+      subtitle = "Bars are sgRNA counts, color indicates target type"
+    ) +
+    custom_theme() +
+    scale_fill_manual(values = custom_colors[2:1]) +
+    scale_color_manual(values = custom_colors[2:1])
+} else {
+  print("No guides with multiple targets found in data set.")
+}
 ```
 
 ----------
