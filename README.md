@@ -169,54 +169,56 @@ snakemake --cores 10 --use-conda \
 
 This table lists all parameters that can be used to run the workflow.
 
-| parameter              | type      | details                                  | default                         |
-| ---------------------- | --------- | ---------------------------------------- | ------------------------------- |
-| GET_GENOME             |           |                                          |                                 |
-| database               | character | one of `ncbi`, `manual`                  | `ncbi`                          |
-| assembly               | character | RefSeq ID                                | `GCF_000006945.2`               |
-| fasta                  | path      | optional input                           | `Null`                          |
-| gff                    | path      | optional input                           | `Null`                          |
-| DESIGN_GUIDES          |           |                                          |                                 |
-| target_region          | numeric   | use subset of regions for testing        | `["NC_003277.2"]`               |
-| tss_window             | numeric   | upstream/downstream window around TSS    | `[0, 500]`                      |
-| circular               | logical   | is the genome circular?                  | `False`                         |
-| canonical              | logical   | only canonical PAM sites are included    | `True`                          |
-| strands                | character | target `coding`, `template` or `both`    | `both`                          |
-| spacer_length          | numeric   | desired length of guides                 | `20`                            |
-| guide_aligner          | character | one of `biostrings`, `bowtie`            | `biostrings`                    |
-| crispr_enzyme          | character | CRISPR enzyme ID                         | `SpCas9`                        |
-| gc_content_range       | numeric   | range of allowed GC content              | `[30, 70]`                      |
-| score_methods          | character | see _crisprScore_ package                | default scores are listed below |
-| score_weights          | numeric   | opt. weights when calculating mean score | `[1, 1, 1, 1, 1, 1]`               |
-| restriction_sites      | character | sequences to omit in entire guide        | `Null`                          |
-| bad_seeds              | character | sequences to omit in seed region         | `["ACCCA", "ATACT", "TGGAA"]`   |
-| filter_top_n           | numeric   | max number of guides to return           | `10`                            |
-| filter_score_threshold | numeric   | mean score to use as lower limit         | `Null`                          |
-| VISUALIZE_GUIDES       |           |                                          |                                 |
-| show_examples          | numeric   | number of genes to show guide position   | `10`                            |
+| parameter              | type      | details                                          | default                         |
+| ---------------------- | --------- | ------------------------------------------------ | ------------------------------- |
+| GET_GENOME             |           |                                                  |                                 |
+| database               | character | one of `ncbi`, `manual`                          | `ncbi`                          |
+| assembly               | character | RefSeq ID                                        | `GCF_000006945.2`               |
+| fasta                  | path      | optional input                                   | `Null`                          |
+| gff                    | path      | optional input                                   | `Null`                          |
+| DESIGN_GUIDES          |           |                                                  |                                 |
+| target_region          | numeric   | use subset of regions for testing                | `["NC_003277.2"]`               |
+| tss_window             | numeric   | upstream/downstream window around TSS            | `[0, 500]`                      |
+| circular               | logical   | is the genome circular?                          | `False`                         |
+| canonical              | logical   | only canonical PAM sites are included            | `True`                          |
+| strands                | character | target `coding`, `template` or `both`            | `both`                          |
+| spacer_length          | numeric   | desired length of guides                         | `20`                            |
+| guide_aligner          | character | one of `biostrings`, `bowtie`                    | `biostrings`                    |
+| crispr_enzyme          | character | CRISPR enzyme ID                                 | `SpCas9`                        |
+| gc_content_range       | numeric   | range of allowed GC content                      | `[30, 70]`                      |
+| score_methods          | character | see _crisprScore_ package                        | default scores are listed below |
+| score_weights          | numeric   | opt. weights when calculating mean score         | `[1, 1, 1, 1, 1, 1]`            |
+| restriction_sites      | character | sequences to omit in entire guide                | `Null`                          |
+| bad_seeds              | character | sequences to omit in seed region                 | `["ACCCA", "ATACT", "TGGAA"]`   |
+| filter_top_n           | numeric   | max number of guides to return                   | `10`                            |
+| filter_score_threshold | numeric   | mean score to use as lower limit                 | `Null`                          |
+| filter_multi_targets   | logical   | remove guides that perfectly match more than one target | `True`                          |
+| VISUALIZE_GUIDES       |           |                                                  |                                 |
+| show_examples          | numeric   | number of genes to show guide position           | `10`                            |
 
 ### Off-target scores
 
-The pipeline maps each guide RNA to the target genome and -by default- counts the number of alternative alignments with 1, 2, 3, or 4 mismatches. All guide RNAs that map to any other position including up to 4 allowed mismatches is removed.
+The pipeline maps each guide RNA to the target genome and -by default- counts the number of alternative alignments with 1, 2, 3, or 4 mismatches. All guide RNAs that map to any other position including up to 4 allowed mismatches are removed.
+An exception to this rule is made for guides that perfectly match multiple targets when the `filter_multi_targets` is set to `False` (default: `True`). The reasoning behind this rule is that genomes often contain duplicated genes/targets, and the default but sometimes undesired behavior is to remove all guides targeting the two or more duplicates. If set to `False`, these guides will not be removed and duplicated genes will be targeted even if they are located at different sites. 
 
 ### On-target scores
 
 The list of available on-target scores in the [R crisprScore package](https://github.com/crisprVerse/crisprScore) is larger than the different scores included by default. It is important to note that the computation of some scores does not necessarily make sense for the design of every CRISPR library. For example, several scores were obtained from analysis of Cas9 cutting efficiency in human cell lines. For such scores it is questionable if they are useful for the design of a different type of library, for example a dCas9 CRISPR inhibition library for bacteria.
 
-Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed via `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
+Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed *via* `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
 
 Users can look up all available scores on the [R crisprScore github page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
 
 The default scores are:
 
 - `ruleset1`, `ruleset3`, `crisprater`, and `crisprscan` from the `crisprScore` package
-- `tssdist` as an additional score representing the relative distance to the promoter
-- `genrich` as an additional score representing the `G` enrichment in the -4 to -14 nt region of a spacer ([Miao & Jahn et al., 2023](https://www.biorxiv.org/content/10.1101/2023.02.13.528328v1))
+- `tssdist` as an additional score representing the relative distance to the promoter. Only relevant for CRISRPi repression
+- `genrich` as an additional score representing the `G` enrichment in the -4 to -14 nt region of a spacer ([Miao & Jahn et al., 2023](https://www.biorxiv.org/content/10.1101/2023.02.13.528328v1)). Only relevant for CRISPRi repression
 
 
 ### Strand specificity
 
-The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs target both strands, the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
+The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs that target both strands, the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
 
 - For CRISPRi (inhibition) experiments, the literature recommends to target the **coding strand for the CDS** or **both strands for the promoter** ([Larson et al., Nat Prot, 2013](http://dx.doi.org/10.1038/nprot.2013.132))
 - this pipeline will automatically filter guides for the chosen strand
