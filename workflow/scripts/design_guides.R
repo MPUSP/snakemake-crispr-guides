@@ -440,7 +440,7 @@ if (length(list_no_guides) >= 1) {
 
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
-# export results as csv table
+# prepare result table
 df_pred_guides <- list_pred_guides %>%
   as.data.frame() %>%
   as_tibble() %>%
@@ -450,6 +450,18 @@ df_pred_guides <- list_pred_guides %>%
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
   )
+
+# add potential linkers on 5' and/or 3' end
+if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
+  df_pred_guides <- df_pred_guides %>%
+    mutate(
+      fiveprime_linker = fiveprime_linker,
+      threeprime_linker = threeprime_linker,
+      seq_with_linkers = paste0(fiveprime_linker, protospacer, threeprime_linker)
+    )
+}
+
+# export results as csv table
 write_csv(df_pred_guides, output_top)
 
 # export table with transcripts where no guide is available

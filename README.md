@@ -169,32 +169,34 @@ snakemake --cores 10 --use-conda \
 
 This table lists all parameters that can be used to run the workflow.
 
-| parameter              | type      | details                                          | default                         |
-| ---------------------- | --------- | ------------------------------------------------ | ------------------------------- |
-| GET_GENOME             |           |                                                  |                                 |
-| database               | character | one of `ncbi`, `manual`                          | `ncbi`                          |
-| assembly               | character | RefSeq ID                                        | `GCF_000006945.2`               |
-| fasta                  | path      | optional input                                   | `Null`                          |
-| gff                    | path      | optional input                                   | `Null`                          |
-| DESIGN_GUIDES          |           |                                                  |                                 |
-| target_region          | numeric   | use subset of regions for testing                | `["NC_003277.2"]`               |
-| tss_window             | numeric   | upstream/downstream window around TSS            | `[0, 500]`                      |
-| circular               | logical   | is the genome circular?                          | `False`                         |
-| canonical              | logical   | only canonical PAM sites are included            | `True`                          |
-| strands                | character | target `coding`, `template` or `both`            | `both`                          |
-| spacer_length          | numeric   | desired length of guides                         | `20`                            |
-| guide_aligner          | character | one of `biostrings`, `bowtie`                    | `biostrings`                    |
-| crispr_enzyme          | character | CRISPR enzyme ID                                 | `SpCas9`                        |
-| gc_content_range       | numeric   | range of allowed GC content                      | `[30, 70]`                      |
-| score_methods          | character | see _crisprScore_ package                        | default scores are listed below |
-| score_weights          | numeric   | opt. weights when calculating mean score         | `[1, 1, 1, 1, 1, 1]`            |
-| restriction_sites      | character | sequences to omit in entire guide                | `Null`                          |
-| bad_seeds              | character | sequences to omit in seed region                 | `["ACCCA", "ATACT", "TGGAA"]`   |
-| filter_top_n           | numeric   | max number of guides to return                   | `10`                            |
-| filter_score_threshold | numeric   | mean score to use as lower limit                 | `Null`                          |
-| filter_multi_targets   | logical   | remove guides that perfectly match more than one target | `True`                          |
-| VISUALIZE_GUIDES       |           |                                                  |                                 |
-| show_examples          | numeric   | number of genes to show guide position           | `10`                            |
+| parameter              | type      | details                                      | default                         |
+| ---------------------- | --------- | -------------------------------------------- | ------------------------------- |
+| GET_GENOME             |           |                                              |                                 |
+| database               | character | one of `ncbi`, `manual`                      | `ncbi`                          |
+| assembly               | character | RefSeq ID                                    | `GCF_000006945.2`               |
+| fasta                  | path      | optional input                               | `Null`                          |
+| gff                    | path      | optional input                               | `Null`                          |
+| DESIGN_GUIDES          |           |                                              |                                 |
+| target_region          | numeric   | use subset of regions for testing            | `["NC_003277.2"]`               |
+| tss_window             | numeric   | upstream/downstream window around TSS        | `[0, 500]`                      |
+| circular               | logical   | is the genome circular?                      | `False`                         |
+| canonical              | logical   | only canonical PAM sites are included        | `True`                          |
+| strands                | character | target `coding`, `template` or `both`        | `both`                          |
+| spacer_length          | numeric   | desired length of guides                     | `20`                            |
+| guide_aligner          | character | one of `biostrings`, `bowtie`                | `biostrings`                    |
+| crispr_enzyme          | character | CRISPR enzyme ID                             | `SpCas9`                        |
+| gc_content_range       | numeric   | range of allowed GC content                  | `[30, 70]`                      |
+| score_methods          | character | see _crisprScore_ package                    | default scores are listed below |
+| score_weights          | numeric   | opt. weights when calculating mean score     | `[1, 1, 1, 1, 1, 1]`            |
+| restriction_sites      | character | sequences to omit in entire guide            | `Null`                          |
+| bad_seeds              | character | sequences to omit in seed region             | `["ACCCA", "ATACT", "TGGAA"]`   |
+| filter_top_n           | numeric   | max number of guides to return               | `10`                            |
+| filter_score_threshold | numeric   | mean score to use as lower limit             | `Null`                          |
+| filter_multi_targets   | logical   | remove guides that perfectly match >1 target | `True`                          |
+| fiveprime_linker       | character | optionally add 5' linker to each guide       | `Null`                          |
+| threeprime_linker      | character | optionally add 3' linker to each guide       | `Null`                          |
+| VISUALIZE_GUIDES       |           |                                              |                                 |
+| show_examples          | numeric   | number of genes to show guide position       | `10`                            |
 
 ### Off-target scores
 
