@@ -20,6 +20,9 @@ design_guides:
   bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
   filter_top_n:  10
   filter_score_threshold:  Null
+  filter_multi_targets: True
+  fiveprime_linker: "AAAA"
+  threeprime_linker: "GGGG"
 
 visualize_guides:
   show_examples: 20

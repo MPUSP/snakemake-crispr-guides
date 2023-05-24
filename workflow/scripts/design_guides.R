@@ -150,7 +150,7 @@ df_tss_annot <- list_pred_guides$tssAnnotation %>%
   ) %>%
   dplyr::select(-group, -chr, -strand) %>%
   mutate(tx_width = setNames(width(list_tx), list_tx$tx_id)[tx_id]) %>%
-  arrange(as.numeric(str_sub(group_name, 8, Inf)))
+  arrange(as.numeric(str_sub(group_name, 8L)))
 
 # add modified TSS information to metadata
 list_pred_guides@elementMetadata <- cbind(
@@ -231,7 +231,7 @@ for (score in setdiff(score_methods, c("tssdist", "genrich"))) {
 # add score based on distance to TSS; lower dist = higher score
 list_pred_guides$score_tssdist <- 1 - (abs(list_pred_guides$dist_to_tss) / max(abs(tss_window)))
 
-# add score based on G enrichement in seed region (pos -4 to -14 from PAM),
+# add score based on G enrichment in seed region (pos -4 to -14 from PAM),
 # see Miao & Jahn et al., The Plant Cell, 2023
 list_pred_guides$score_genrich <- list_pred_guides$protospacer %>%
   subseq(start = spacer_length - 13, end = spacer_length - 3) %>%
@@ -310,14 +310,22 @@ messages <- append(messages, paste0(
 ))
 
 # filter by off-target hits
-filter_offtargets <- with(list_pred_guides, n0 == 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
+if (filter_multi_targets) {
+  filter_offtargets <- with(list_pred_guides, n0 == 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
+} else {
+  filter_offtargets <- with(list_pred_guides, n0 >= 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
+}
 messages <- append(messages, paste0(
   "Removed ", sum(!filter_offtargets),
   " guide RNAs with off targets (1 to 4 nt mismatches allowed)"
 ))
 
-# filter by off-target scores
-filter_offtarget_scores <- unname(list_pred_guides$score_cfd == 1 & list_pred_guides$score_cfd == 1)
+# filter by off-target scores (only if multi-targets are not allowed)
+if (filter_multi_targets) {
+  filter_offtarget_scores <- unname(list_pred_guides$score_cfd == 1 & list_pred_guides$score_mit == 1)
+} else {
+  filter_offtarget_scores <- rep_along(list_pred_guides, TRUE)
+}
 messages <- append(messages, paste0(
   "Removed ", sum(!filter_offtarget_scores),
   " guide RNAs with CFD or MIT off-target score < 1"
@@ -376,6 +384,20 @@ while (length(guides_filtered) > 0) {
   guides_filtered <- filter_overlaps(list_pred_guides)
 }
 
+# filter duplicated guides (only when "filter_multi_targets == FALSE")
+if (!filter_multi_targets) {
+  filter_duplicated <- !duplicated(list_pred_guides$protospacer)
+  filter_duplicated_revcom <- sapply(list_pred_guides$protospacer, function(x) {
+    !(x %in% reverseComplement(list_pred_guides$protospacer))
+  })
+  list_pred_guides <- list_pred_guides[filter_duplicated & filter_duplicated_revcom]
+  list_pred_guides$multi_target <- ifelse(list_pred_guides$n0 > 1, TRUE, FALSE)
+  messages <- append(messages, paste0(
+    "Removed ", sum(!(filter_duplicated & filter_duplicated_revcom)),
+    " guide RNAs with duplicated protospacer sequence"
+  ))
+}
+
 # apply filtering by score
 if (!is.null(filter_top_n)) {
   index_top_n <- tapply(
@@ -427,7 +449,7 @@ if (length(list_no_guides) >= 1) {
 
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
-# export results as csv table
+# prepare result table
 df_pred_guides <- list_pred_guides %>%
   as.data.frame() %>%
   as_tibble() %>%
@@ -437,6 +459,18 @@ df_pred_guides <- list_pred_guides %>%
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
   )
+
+# add potential linkers on 5' and/or 3' end
+if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
+  df_pred_guides <- df_pred_guides %>%
+    mutate(
+      fiveprime_linker = fiveprime_linker,
+      threeprime_linker = threeprime_linker,
+      seq_with_linkers = paste0(fiveprime_linker, protospacer, threeprime_linker)
+    )
+}
+
+# export results as csv table
 write_csv(df_pred_guides, output_top)
 
 # export table with transcripts where no guide is available
