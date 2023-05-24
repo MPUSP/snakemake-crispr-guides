@@ -68,9 +68,10 @@ rule bsgenome:
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
-        bowtie_index=rules.bowtie_index.output.path,
     output:
         path=directory("results/bsgenome"),
+        bsgenome="results/bsgenome/bsgenome.RData",
+        seqinfo="results/bsgenome/seqinfo.RData",
     conda:
         "envs/bsgenome.yml"
     log:
@@ -85,6 +86,9 @@ rule design_guides:
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
+        bowtie_index=rules.bowtie_index.output.path,
+        bsgenome=rules.bsgenome.output.bsgenome,
+        seqinfo=rules.bsgenome.output.seqinfo,
     params:
         config["design_guides"],
         max_cores=workflow.cores,

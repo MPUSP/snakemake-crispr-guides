@@ -1,5 +1,14 @@
 # LOAD PACKAGES
 # ------------------------------
+
+# temporary fix to obtain latest version of crisprDesign from github
+# (currently not available in conda)
+packages <- installed.packages()
+cdesign_version <- packages[rownames(packages) == "crisprDesign", ]["Version"]
+if (cdesign_version == "1.0.0") {
+  remotes::install_github("https://github.com/crisprVerse/crisprDesign", quiet = TRUE)
+}
+
 suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
@@ -32,34 +41,13 @@ genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
 genome_index <- snakemake@input[["bowtie_index"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
-genome_seqlevels <- str_extract(names(genome_dna), "^NC\\_[0-9]*\\.[0-9]*")
-genome_name <- str_remove_all(names(genome_dna)[1], "^NC\\_[0-9]*\\.[0-9]* |\\,.*")
-seqinfo_genome <- seqinfo(genome_dna)
-seqlevels(seqinfo_genome) <- genome_seqlevels
-isCircular(seqinfo_genome) <- rep_along(seqlevels(seqinfo_genome), FALSE)
-genome(seqinfo_genome) <- genome_name
+load(snakemake@input[["seqinfo"]])
+seqinfo(genome_dna) <- seqinfo_genome
 
-# import genome annotation
-txdb <- makeTxDbFromGFF(
-  file = genome_gff
-)
-
-# check if sequence annotation is identical for sequence and annotation
-if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
-  stop(
-    paste0(
-      "the following chromosome(s) are annotated in GFF file but not in FASTA sequence: ",
-      setdiff(seqlevels(seqinfo_genome), seqlevels(txdb))
-    )
-  )
-} else {
-  seqinfo(genome_dna) <- seqinfo_genome
-}
-
-# re-import genome annotation with chromosome metadata
+# import genome annotation with chromosome metadata
 txdb <- makeTxDbFromGFF(
   file = genome_gff,
-  organism = genome_name,
+  organism = unname(genome(seqinfo_genome)[1]),
   chrominfo = seqinfo_genome
 )
 
@@ -184,7 +172,7 @@ if (guide_aligner == "biostrings") {
         aligner = "biostrings",
         txObject = txdb,
         custom_seq = genome_dna,
-        n_mismatches = 4,
+        n_mismatches = 3,
         n_max_alignments = 1000,
         addSummary = TRUE,
         all_alignments = TRUE
@@ -194,13 +182,12 @@ if (guide_aligner == "biostrings") {
   # merge all chunks to single guideSet again
   list_pred_guides <- Reduce("c", list_pred_guides_chunks)
 } else if (guide_aligner == "bowtie") {
-  remotes::install_local("results/BSgenomeSalmonellaenterica/")
-  library(BSgenomeSalmonellaenterica)
+  load(snakemake@input[["bsgenome"]])
   list_pred_guides <- addSpacerAlignments(
     list_pred_guides,
     aligner = "bowtie",
     aligner_index = paste0(genome_index, "/index"),
-    bsgenome = BSgenomeSalmonellaenterica,
+    bsgenome = bsgenome,
     addSummary = TRUE,
     n_mismatches = 3,
     custom_seq = genome_dna,
@@ -311,9 +298,9 @@ messages <- append(messages, paste0(
 
 # filter by off-target hits
 if (filter_multi_targets) {
-  filter_offtargets <- with(list_pred_guides, n0 == 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
+  filter_offtargets <- with(list_pred_guides, n0 == 1 & n1 == 0 & n2 == 0 & n3 == 0)
 } else {
-  filter_offtargets <- with(list_pred_guides, n0 >= 1 & n1 == 0 & n2 == 0 & n3 == 0 & n4 == 0)
+  filter_offtargets <- with(list_pred_guides, n0 >= 1 & n1 == 0 & n2 == 0 & n3 == 0)
 }
 messages <- append(messages, paste0(
   "Removed ", sum(!filter_offtargets),
