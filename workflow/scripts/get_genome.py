@@ -72,7 +72,7 @@ if input_database.lower() == "ncbi":
         ncbi_genome = [
             i.split("\t")
             for i in ncbi_result.split("\n")
-            if not i.startswith("New version")
+            if not (i.startswith("New version") or i.startswith("Warning"))
         ]
         ncbi_genome = dict(zip(ncbi_genome[0], ncbi_genome[1]))
         log += ["Found the following genome(s):"]

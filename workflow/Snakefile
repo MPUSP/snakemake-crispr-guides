@@ -108,6 +108,7 @@ rule design_guides:
 rule visualize_guides:
     input:
         guides=rules.design_guides.output.guideRNAs_top,
+        failed=rules.design_guides.output.guideRNAs_fail,
     params:
         config["visualize_guides"],
     output:

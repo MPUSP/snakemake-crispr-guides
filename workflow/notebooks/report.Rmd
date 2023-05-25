@@ -353,7 +353,7 @@ if ("multi_target" %in% colnames(df_guides)) {
     mutate(multi_target = ifelse(multi_target, "multi-target", "single target")) %>%
     group_by(multi_target) %>%
     count(seqnames) %>%
-    ggplot(aes(x = n, y = seqnames, fill = multi_target, label = n)) +
+    ggplot(aes(x = n, y = "count", fill = multi_target, label = n)) +
     geom_col(position = position_dodge2()) +
     geom_text(aes(color = multi_target, x = n + max(n)/30),
       position = position_dodge(0.9), size = 3.5) + 
@@ -362,11 +362,45 @@ if ("multi_target" %in% colnames(df_guides)) {
       title = "Multi-target guides per chromosome",
       subtitle = "Bars are sgRNA counts, color indicates target type"
     ) +
-    custom_theme() +
+    facet_wrap(~seqnames, ncol = 1) +
+    custom_theme(legend.position = "bottom") +
     scale_fill_manual(values = custom_colors[2:1]) +
-    scale_color_manual(values = custom_colors[2:1])
+    scale_color_manual(values = custom_colors[2:1]) +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 } else {
   print("No guides with multiple targets found in data set.")
+}
+```
+
+## Targets where no guides were designed
+
+- in some cases the design of guides is not possible
+- for example if the target (gene) is very short, e.g. below 100 bp, and no PAM site can be found
+- or if genes are duplicated, leading to the removal of multi-target guiges (see previous section)
+- this table and figure lists the targets where no guides were found, if any
+
+```{r, echo = FALSE}
+df_guides_fail <- read_csv(snakemake@input$failed, show_col_types = FALSE)
+if (nrow(df_guides_fail) > 0) {
+  df_guides_fail
+  df_guides_fail %>%
+    ggplot(aes(x = start/1000, y = 0, color = strand, label = tx_name)) +
+    geom_point() +
+    geom_text_repel(size = 2.5, max.overlaps = 50) +
+    coord_cartesian(ylim = c(-0.5, 0.5)) +
+    labs(
+      x = "position [kbp]", y = "",
+      title = paste0("Location of targets where no guides could be found (", nrow(df_guides_fail), ")"),
+      subtitle = paste0("Dots: genes, color: strand")
+    ) +
+    facet_wrap(~seqnames, ncol = 1) +
+    custom_theme(legend.position = "bottom") +
+    scale_color_manual(values = custom_colors[1:2]) +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+
+} else {
+  print("No genes/targets without guide RNAs were found")
 }
 ```
 
