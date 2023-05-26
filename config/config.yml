@@ -21,6 +21,7 @@ design_guides:
   filter_top_n:  5
   filter_score_threshold:  Null
   filter_multi_targets: True
+  filter_rna: True
   fiveprime_linker: Null
   threeprime_linker: Null
 

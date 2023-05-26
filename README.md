@@ -193,6 +193,7 @@ This table lists all parameters that can be used to run the workflow.
 | filter_top_n           | numeric   | max number of guides to return               | `10`                            |
 | filter_score_threshold | numeric   | mean score to use as lower limit             | `Null`                          |
 | filter_multi_targets   | logical   | remove guides that perfectly match >1 target | `True`                          |
+| filter_rna             | logical   | remove guides that target e.g. rRNA or tRNA  | `True`                          |
 | fiveprime_linker       | character | optionally add 5' linker to each guide       | `Null`                          |
 | threeprime_linker      | character | optionally add 3' linker to each guide       | `Null`                          |
 | VISUALIZE_GUIDES       |           |                                              |                                 |

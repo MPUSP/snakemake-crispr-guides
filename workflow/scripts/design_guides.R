@@ -33,6 +33,7 @@ for (param in names(sm_params)) {
 output_top <- snakemake@output[["guideRNAs_top"]]
 output_fail <- snakemake@output[["guideRNAs_fail"]]
 
+
 # STAGE 1 : FILE PREPARATION
 # ------------------------------
 # import genome sequence
@@ -74,7 +75,8 @@ list_pred_guides <- findSpacers(
 )
 
 # extract (pseudo) transcription start sites (TSS)
-list_tss <- resize(transcripts(txdb), width = 1)
+list_tx <- transcripts(txdb)
+list_tss <- resize(list_tx, width = 1)
 list_tss$ID <- list_tss$tx_name
 
 # map guides to TSS windows
@@ -94,11 +96,7 @@ list_pred_guides <- list_pred_guides[index_non_target != 0]
 
 # clip TSS windows where the 5'-UTR extends into another transcript
 # then remove all guides that are beyond the 3'- or 5' end of the target gene
-list_tx <- transcripts(txdb)
-list_intergenic <-
-  {
-    start(list_tx) - c(1, end(list_tx[-length(list_tx)]))
-  } %>%
+list_intergenic <- {start(list_tx) - c(1, end(list_tx[-length(list_tx)]))} %>%
   c(., unname(tail(seqlengths(txdb), 1) - tail(end(list_tx), 1))) %>%
   replace(., . > abs(tss_window[1]), abs(tss_window[1])) %>%
   replace(., . < tss_window[1] / 2, tss_window[1] / 2)
@@ -148,6 +146,12 @@ list_pred_guides@elementMetadata <- cbind(
 
 # remove guides where a transcript was mapped but not the right one
 list_pred_guides <- list_pred_guides[!is.na(list_pred_guides$tss_id)]
+
+# remove guides targeting RNAs (optional)
+if (filter_rna) {
+  list_rna_targets <- grepl("^rna-", list_pred_guides$tx_name)
+  list_pred_guides <- list_pred_guides[!list_rna_targets]
+}
 
 # add spacer and PAM sequence features
 list_pred_guides <- addSequenceFeatures(list_pred_guides)
@@ -426,6 +430,11 @@ if (!is.null(target_region)) {
 } else {
   list_tx_total <- list_tx$tx_name
 }
+if (filter_rna) {
+  list_rna_targets <- grepl("^rna-", list_tx_total)
+  list_tx_total <- list_tx_total[!list_rna_targets]
+}
+
 list_no_guides <- setdiff(list_tx_total, unique(list_pred_guides$tx_name))
 if (length(list_no_guides) >= 1) {
   messages <- append(messages, paste0(
