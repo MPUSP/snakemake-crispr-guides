@@ -52,7 +52,7 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
    1. Using automatic download from NCBI with a `RefSeq` ID
    2. Using user-supplied files
 2. Find all possible guide RNAs for the given sequence, with many options for customization (`R`, `crisprVerse`)
-3. Collect on-target and off-target scores (`R`, `crisprVerse`, `Bowtie2`)
+3. Collect on-target and off-target scores (`R`, `crisprVerse`, `Bowtie`)
 4. Filter and rank guide RNAs based on scores and return final list (`R`, `crisprVerse`)
 5. Generate report with overview figures and statistics (`R markdown`)
 6. Return report as HTML and PDF files (`weasyprint`)
