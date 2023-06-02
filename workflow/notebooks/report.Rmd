@@ -174,7 +174,7 @@ print(paste0(
 
 plot_n_guides <- df_n_guides %>%
   ggplot(aes(x = n_guides, y = n, label = n)) +
-  geom_col(color = "white", fill = custom_colors[1]) +
+  geom_col(color = NA, fill = custom_colors[1]) +
   geom_text(size = 3.5, nudge_y = max(df_n_guides$n)*0.03, color = grey(0.5)) + 
   labs(
     x = "guides per target", y = "count",
@@ -239,7 +239,7 @@ df_guides %>%
   ggplot(aes(x = value)) +
   geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
   labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
-  facet_wrap(~score) +
+  facet_wrap(~ score) +
   custom_theme()
 ```
 
@@ -254,15 +254,16 @@ df_guides %>%
 df_guides %>%
   select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
   rename_with(.fn = function(x) gsub("score_", "", x)) %>%
-  ggpairs(aes(color = "score", shape = factor(1))) +
+  ggpairs(
+    upper = list(continuous = "cor"),
+    lower = list(continuous = wrap("points", alpha = 0.8, size = 0.3, color = custom_colors[1])),
+    diag = list(continuous = wrap("densityDiag", color = grey(0.3), fill = custom_colors[1])),
+    progress = FALSE) +
   labs(
     x = "", y = "",
     title = "Correlation of scores with each other",
     subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
   ) +
-  scale_color_manual(values = alpha(custom_colors, 0.5)) +
-  scale_fill_manual(values = custom_colors) +
-  scale_shape_manual(values = 20) +
   custom_theme()
 ```
 
