@@ -22,6 +22,7 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
     - [Off-target scores](#off-target-scores)
     - [On-target scores](#on-target-scores)
     - [Strand specificity](#strand-specificity)
+    - [Random control guides](#random-control-guides)
   - [Output](#output)
   - [Authors](#authors)
   - [References](#references)
@@ -194,6 +195,7 @@ This table lists all parameters that can be used to run the workflow.
 | filter_score_threshold | numeric   | mean score to use as lower limit             | `Null`                          |
 | filter_multi_targets   | logical   | remove guides that perfectly match >1 target | `True`                          |
 | filter_rna             | logical   | remove guides that target e.g. rRNA or tRNA  | `True`                          |
+| no_target_controls     | numeric   | number of non-targeting control guides       | `100`                           |
 | fiveprime_linker       | character | optionally add 5' linker to each guide       | `Null`                          |
 | threeprime_linker      | character | optionally add 3' linker to each guide       | `Null`                          |
 | VISUALIZE_GUIDES       |           |                                              |                                 |
@@ -218,7 +220,6 @@ The default scores are:
 - `tssdist` as an additional score representing the relative distance to the promoter. Only relevant for CRISRPi repression
 - `genrich` as an additional score representing the `G` enrichment in the -4 to -14 nt region of a spacer ([Miao & Jahn et al., 2023](https://www.biorxiv.org/content/10.1101/2023.02.13.528328v1)). Only relevant for CRISPRi repression
 
-
 ### Strand specificity
 
 The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs that target both strands, the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
@@ -226,6 +227,10 @@ The strand specificity is important for some CRISPR applications. In contrast to
 - For CRISPRi (inhibition) experiments, the literature recommends to target the **coding strand for the CDS** or **both strands for the promoter** ([Larson et al., Nat Prot, 2013](http://dx.doi.org/10.1038/nprot.2013.132))
 - this pipeline will automatically filter guides for the chosen strand
 - for example, if only guides for the coding (non-template) strand are desired, genes on the "+" strand will be targeted with reverse-complement guides ("-"), and genes on the "-" strand with "+" guides.
+
+### Random control guides
+
+The pipeline includes the option to design random control guides. These are simply random nucleotide sequences with the same length as specified for the actual guide RNAs. The control guides are named `NTC_<number>` and exported in a separate table, by default as `results/design_guides/guideRNAs_ntc.csv`. Some very reduced checks are done for these guides, such as off-target binding. However most on-target checks are omitted for these guides as they have no defined binding site, strand, or other typical guide properties. Linkers are added when specified.
 
 ## Output
 
@@ -245,6 +250,7 @@ The workflow generates the following output from its modules:
 
 - `guideRNAs_top.csv`: Table with top N guide RNAs per gene remaining after filtering
 - `guideRNAs_fail.csv`: Table with genes/targets where no guide RNAs were designed. Typical reasons for failure are very short target sites, or overlapping annotation with other genes/targets such that candidate guide RNAs would target multiple annotated genes.
+- `guideRNAs_ntc.csv`: Table with specified number of random guide RNAs. The number can be defined with option `no_target_controls`.
 - `log.txt`: Log file for this module
 
 </details>

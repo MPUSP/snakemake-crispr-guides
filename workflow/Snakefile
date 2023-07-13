@@ -95,6 +95,7 @@ rule design_guides:
     output:
         guideRNAs_top="results/design_guides/guideRNAs_top.csv",
         guideRNAs_fail="results/design_guides/guideRNAs_fail.csv",
+        guideRNAs_ntc="results/design_guides/guideRNAs_ntc.csv",
     conda:
         "envs/design_guides.yml"
     log:

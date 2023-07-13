@@ -32,6 +32,7 @@ for (param in names(sm_params)) {
 }
 output_top <- snakemake@output[["guideRNAs_top"]]
 output_fail <- snakemake@output[["guideRNAs_fail"]]
+output_ntc <- snakemake@output[["guideRNAs_ntc"]]
 
 
 # STAGE 1 : FILE PREPARATION
@@ -44,6 +45,7 @@ genome_index <- snakemake@input[["bowtie_index"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
 load(snakemake@input[["seqinfo"]])
 seqinfo(genome_dna) <- seqinfo_genome
+load(snakemake@input[["bsgenome"]])
 
 # import genome annotation with chromosome metadata
 txdb <- makeTxDbFromGFF(
@@ -186,7 +188,6 @@ if (guide_aligner == "biostrings") {
   # merge all chunks to single guideSet again
   list_pred_guides <- Reduce("c", list_pred_guides_chunks)
 } else if (guide_aligner == "bowtie") {
-  load(snakemake@input[["bsgenome"]])
   list_pred_guides <- addSpacerAlignments(
     list_pred_guides,
     aligner = "bowtie",
@@ -199,10 +200,10 @@ if (guide_aligner == "biostrings") {
 }
 
 # add OFF target scores based on alignment
-list_pred_guides <- crisprDesign::addOffTargetScores(list_pred_guides)
+list_pred_guides <- addOffTargetScores(list_pred_guides)
 
 # add ON target scores based on spacer and protospacer sequence
-list_pred_guides <- crisprDesign::addOnTargetScores(
+list_pred_guides <- addOnTargetScores(
   list_pred_guides,
   methods = setdiff(score_methods, c("tssdist", "genrich"))
 )
@@ -443,6 +444,44 @@ if (length(list_no_guides) >= 1) {
   ))
 }
 
+# optionally create a set of random control guides
+# we do a very reduced check of these guides (only off-targets)
+# since all on-target scores don't apply and would produce errors
+if (no_target_controls > 0) {
+  list_ntc_guides <- sapply(1:no_target_controls, FUN = function(x) {
+    ntc <- sample(x = c("A", "C", "T", "G"), size = spacer_length, replace = TRUE)
+    ntc <- paste(ntc, collapse = "")
+    names(ntc) <- paste0("NTC_", str_pad(x, width = nchar(max(no_target_controls)), pad = "0"))
+    ntc
+  })
+
+  list_ntc_guides <- GuideSet(
+    ids = names(list_ntc_guides),
+    protospacers = unname(list_ntc_guides),
+    seqnames = rep(seqnames(bsgenome)[1], no_target_controls),
+    bsgenome = bsgenome,
+    pams = rep(colnames(get(crispr_enzyme)@cutSites)[1], no_target_controls),
+    CrisprNuclease = get(crispr_enzyme),
+    targetOrigin = "customSequences",
+    customSequences = genome_dna
+  )
+
+  list_ntc_guides <- addSpacerAlignments(
+    list_ntc_guides,
+    aligner = "biostrings",
+    txObject = txdb,
+    custom_seq = genome_dna,
+    n_mismatches = 3,
+    n_max_alignments = 1000,
+    addSummary = TRUE,
+    all_alignments = TRUE
+  )
+
+  df_ntc_guides <- list_ntc_guides %>%
+    as.data.frame() %>%
+    as_tibble()
+}
+
 # STAGE 4 : EXPORT RESULTS
 # ------------------------------
 # prepare result table
@@ -464,6 +503,19 @@ if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
       threeprime_linker = threeprime_linker,
       seq_with_linkers = paste0(fiveprime_linker, protospacer, threeprime_linker)
     )
+  if (no_target_controls > 0) {
+    df_ntc_guides <- df_ntc_guides %>%
+      mutate(
+        fiveprime_linker = fiveprime_linker,
+        threeprime_linker = threeprime_linker,
+        seq_with_linkers = paste0(fiveprime_linker, protospacer, threeprime_linker)
+      )
+  }
+}
+
+# export table with NTCs
+if (no_target_controls > 0) {
+  write_csv(df_ntc_guides, output_ntc)
 }
 
 # export results as csv table
