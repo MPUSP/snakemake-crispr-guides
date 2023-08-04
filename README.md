@@ -37,7 +37,7 @@ If you use this workflow in a paper, don't forget to give credits to the author(
 ## Workflow overview
 
 <!-- include logo-->
-<img src="resources/images/overview_guide_design.svg" align="center" />
+<img src="resources/images/logo.png" align="center" />
 
 ----------
 
@@ -222,7 +222,11 @@ The default scores are:
 
 ### Strand specificity
 
-The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs that target both strands, the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
+<!-- include illustration of guide design -->
+<img src="resources/images/overview_guide_design.svg" align="center" />
+
+
+The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs that target either both strands, or just the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
 
 - For CRISPRi (inhibition) experiments, the literature recommends to target the **coding strand for the CDS** or **both strands for the promoter** ([Larson et al., Nat Prot, 2013](http://dx.doi.org/10.1038/nprot.2013.132))
 - this pipeline will automatically filter guides for the chosen strand
