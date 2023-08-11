@@ -1,14 +1,5 @@
 # LOAD PACKAGES
 # ------------------------------
-
-# temporary fix to obtain latest version of crisprDesign from github
-# (currently not available in conda)
-packages <- installed.packages()
-cdesign_version <- packages[rownames(packages) == "crisprDesign", ]["Version"]
-if (cdesign_version == "1.0.0") {
-  remotes::install_github("https://github.com/crisprVerse/crisprDesign", quiet = TRUE)
-}
-
 suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
