@@ -9,7 +9,8 @@
 # supplied by the user. Input is roughly checked for validity.
 
 from os import path
-from io import StringIO
+from BCBio.GFF import GFFExaminer
+from BCBio import GFF
 from subprocess import getoutput
 
 input_database = snakemake.params["database"]
@@ -38,24 +39,43 @@ def check_fasta(input_fasta, log=[], error=[]):
 
 def check_gff(input_gff, log=[], error=[]):
     with open(input_gff, "r") as gff_file:
-        gff = gff_file.read()
-    if gff.startswith("##gff-version"):
-        gff_regions = gff.count("sequence-region")
-        gff_genes = gff.count("\tgene\t")
-        gff_trans = gff.count("\ttranscript\t")
-        gff_exons = gff.count("\texon\t")
-        gff_cds = gff.count("\tCDS\t")
+        gff_examiner = GFFExaminer()
         log += [f"Supplied GFF file '{input_gff}' was found"]
+        gff_summary = gff_examiner.available_limits(gff_file)
         log += [
-            f"Supplied GFF file contains {gff_regions} sequence regions with:",
-            f"    - {gff_genes} genes",
-            f"    - {gff_trans} transcripts",
-            f"    - {gff_exons} exons",
-            f"    - {gff_cds} CDSs",
+            f"Supplied GFF file contains the following items:",
+            "--------------------",
         ]
-    else:
-        error += ["Supplied GFF file does not contain a valid '##gff-version' tag"]
-    return gff, log, error
+        for item in gff_summary["gff_source_type"]:
+            log += ["-".join(item) + " : " + str(gff_summary["gff_source_type"][item])]
+    with open(input_gff, "r") as gff_file:
+        added_id = []
+        new_gff = []
+        limits = dict(
+            gff_source_type=[
+                ("RefSeq", "gene"),
+                ("RefSeq", "pseudogene"),
+                ("RefSeq", "CDS"),
+                ("Protein Homology", "CDS"),
+            ]
+        )
+        for rec in GFF.parse(gff_file, limit_info=limits):
+            for recfeat in rec.features:
+                rec_keys = recfeat.qualifiers.keys()
+                if not "Name" in rec_keys:
+                    if "locus_tag" in rec_keys:
+                        recfeat.qualifiers["Name"] = recfeat.qualifiers["locus_tag"]
+                    else:
+                        error += ["required fields 'Name','locus_tag' missing in *.gff file"]
+                if not "ID" in rec_keys:
+                    if "locus_tag" in rec_keys:
+                        recfeat.qualifiers["ID"] = recfeat.qualifiers["locus_tag"]
+                    elif "Name" in rec_keys:
+                        recfeat.qualifiers["ID"] = recfeat.qualifiers["Name"]
+                    else:
+                        error += ["required fields 'ID','locus_tag' missing in *.gff file"]
+            new_gff += [rec]
+    return new_gff, log, error
 
 
 if input_database.lower() == "ncbi":
@@ -95,6 +115,9 @@ if input_database.lower() == "ncbi":
         # import and check files
         fasta, log, error = check_fasta(output_fasta, log, error)
         gff, log, error = check_gff(output_gff, log, error)
+        # write cleaned gff file
+        with open(output_gff, "w") as gff_out:
+            GFF.write(gff, gff_out)
 
 elif input_database.lower() == "manual":
     if not path.exists(input_fasta):
@@ -109,7 +132,7 @@ elif input_database.lower() == "manual":
         with open(output_fasta, "w") as fasta_out:
             fasta_out.write(fasta)
         with open(output_gff, "w") as gff_out:
-            gff_out.write(gff)
+            GFF.write(gff, gff_out)
 else:
     error += ["The parameter 'database' is none of 'ncbi', 'manual'"]
 
@@ -120,7 +143,7 @@ if error:
         "Location or format of the supplied genome files was not correct, quitting"
     )
 else:
-    log += [f"Module finished successfully"]
+    log += [f"Module finished successfully\n"]
     log = ["GET_GENOME: " + i for i in log]
     with open(output_log, "w") as log_file:
         log_file.write("\n".join(log))

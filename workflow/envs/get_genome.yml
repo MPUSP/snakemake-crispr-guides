@@ -1,8 +1,10 @@
 name: get_genome
 channels:
- - conda-forge
- - defaults
+  - conda-forge
+  - defaults
+  - bioconda
 dependencies:
- - python=3.9
- - unzip=6.0
- - ncbi-datasets-cli=14.13.2
+  - python=3.9
+  - unzip=6.0
+  - ncbi-datasets-cli=14.13.2
+  - bcbio-gff=0.7.0
