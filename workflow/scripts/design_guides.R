@@ -504,6 +504,22 @@ if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
   }
 }
 
+# function to export main result as GFF file
+export_gff <- function(df, filename) {
+  gr <- makeGRangesFromDataFrame(df,
+    seqnames.field = "seqnames",
+    keep.extra.columns = TRUE
+  )
+  gr$type <- "gene"
+  gr$ID <- gr$group_name
+  gr$Parent <- NA
+  rtracklayer::export(
+    gr, filename,
+    version = "3",
+    source = "RefSeq"
+  )
+}
+
 # export table with NTCs
 if (no_target_controls > 0) {
   write_csv(df_ntc_guides, output_ntc)
@@ -511,6 +527,9 @@ if (no_target_controls > 0) {
 
 # export results as csv table
 write_csv(df_pred_guides, output_top)
+if (export_as_gff) {
+  export_gff(df_pred_guides, str_replace(output_top, ".csv$", ".gff"))
+}
 
 # export table with transcripts where no guide is available
 df_no_guides <- list_tx[list_tx$tx_name %in% list_no_guides] %>%

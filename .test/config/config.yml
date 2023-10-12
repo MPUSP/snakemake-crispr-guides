@@ -25,6 +25,7 @@ design_guides:
   no_target_controls: 100
   fiveprime_linker: Null
   threeprime_linker: Null
+  export_as_gff: False
 
 visualize_guides:
   show_examples: 20
