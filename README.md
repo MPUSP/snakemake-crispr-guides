@@ -133,6 +133,7 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 
 - `*.gff` genome annotation must have the same chromosome/region name as the `*.fasta` file (example: `NC_003197.2`)
 - `*.gff` genome annotation must have `gene` and `CDS` type annotation that is automatically parsed to extract transcripts
+- `*.gff` genome annotation must have additional qualifiers `Name=...`, `ID=...`, and `Parent=...` for `CDS`s
 - all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
 - but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
 
@@ -198,6 +199,7 @@ This table lists all parameters that can be used to run the workflow.
 | no_target_controls     | numeric   | number of non-targeting control guides       | `100`                           |
 | fiveprime_linker       | character | optionally add 5' linker to each guide       | `Null`                          |
 | threeprime_linker      | character | optionally add 3' linker to each guide       | `Null`                          |
+| export_as_gff          | logical   | export result table also as `.gff` file      | `False`                         |
 | VISUALIZE_GUIDES       |           |                                              |                                 |
 | show_examples          | numeric   | number of genes to show guide position       | `10`                            |
 

@@ -1,13 +1,12 @@
 name: bsgenome
 channels:
- - conda-forge
- - bioconda
- - defaults
+  - conda-forge
+  - bioconda
+  - defaults
 dependencies:
- - r-base 4.3.1
- - r-tidyverse=2.0.0
- - r-devtools
- - bioconductor-biostrings=2.68.1
- - bioconductor-genomicfeatures=1.52.1
- - bioconductor-bsgenome=1.68.0
- 
+  - r-base 4.3.1
+  - r-tidyverse=2.0.0
+  - r-devtools
+  - bioconductor-biostrings=2.68.1
+  - bioconductor-genomicfeatures=1.52.1
+  - bioconductor-bsgenome=1.68.0

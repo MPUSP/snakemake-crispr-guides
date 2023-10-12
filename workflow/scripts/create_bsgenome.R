@@ -15,8 +15,8 @@ messages <- c("importing genome sequence")
 genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
-genome_seqlevels <- str_extract(names(genome_dna), "^NC\\_[0-9]*\\.[0-9]*")
-genome_name <- str_remove_all(names(genome_dna)[1], "^NC\\_[0-9]*\\.[0-9]* |\\,.*")
+genome_seqlevels <- str_split_i(names(genome_dna), " ", i = 1)
+genome_name <- str_remove_all(names(genome_dna)[1], paste0(genome_seqlevels[1], " |\\,.*"))
 genome_common <- str_flatten(str_split_1(genome_name, " ")[1:2], " ")
 seqinfo_genome <- seqinfo(genome_dna)
 seqlevels(seqinfo_genome) <- genome_seqlevels
@@ -25,9 +25,11 @@ genome(seqinfo_genome) <- genome_name
 genome_build <- str_remove(read_lines(genome_gff, n_max = 5)[4], "#!genome-build ")
 
 # import genome annotation
-txdb <- makeTxDbFromGFF(
-  file = genome_gff
-)
+quiet_txdb <- quietly(makeTxDbFromGFF)
+txdb_msg <- quiet_txdb(file = genome_gff)
+txdb <- txdb_msg$result
+messages <- append(messages, paste0("warning: ", txdb_msg$warnings))
+messages <- append(messages, txdb_msg$messages)
 
 # check if sequence annotation is identical for sequence and annotation
 if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
@@ -42,11 +44,11 @@ if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
 }
 
 # re-import genome annotation with chromosome metadata
-txdb <- makeTxDbFromGFF(
+txdb <- quiet_txdb(
   file = genome_gff,
   organism = genome_name,
   chrominfo = seqinfo_genome
-)
+)$result
 
 # export sequence file
 messages <- append(messages, "exporting sequence files")
@@ -66,7 +68,7 @@ forgeSeqFiles(
   seqs_srcdir = paste0(output, "/seqs_srcdir"),
   seqs_destdir = paste0(output, "/seqs_srcdir"),
   ondisk_seq_format = "2bit",
-  verbose = TRUE
+  verbose = FALSE
 )
 
 # create the BSgenome object, based on GH issue:
