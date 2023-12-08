@@ -16,13 +16,64 @@ genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
 genome_dna <- Biostrings::readDNAStringSet(genome_fasta)
 genome_seqlevels <- str_split_i(names(genome_dna), " ", i = 1)
-genome_name <- str_remove_all(names(genome_dna)[1], paste0(genome_seqlevels[1], " |\\,.*"))
-genome_common <- str_flatten(str_split_1(genome_name, " ")[1:2], " ")
 seqinfo_genome <- seqinfo(genome_dna)
 seqlevels(seqinfo_genome) <- genome_seqlevels
 isCircular(seqinfo_genome) <- rep_along(seqlevels(seqinfo_genome), FALSE)
+
+df_taxonomy <- loadTaxonomyDb()
+header_gff <- read_lines(genome_gff, n_max = 10)
+header_species <- na.omit(str_match(header_gff, ";species=.*"))[1]
+
+if (!is.na(header_species)) {
+  messages <- c(messages, "trying to guess taxonomy ID from GFF file")
+  taxon_id <- header_species %>%
+    str_extract("wwwtax.cgi(%3F|\\?)id(%3D|=)[0-9]+") %>%
+    str_extract("[0-9]+$") %>%
+    as.numeric()
+  messages <- c(messages, paste("extracted taxon ID:", taxon_id))
+  tax_entry <- filter(df_taxonomy, tax_id == taxon_id)
+  if (!is.na(tax_entry[1, "genus"])) {
+    genome_name <- paste(tax_entry[1, "genus"], tax_entry[1, "species"])
+    messages <- c(messages, paste("found genome name:", genome_name)) 
+  } else {
+    genome_name <- NA
+    messages <- c(messages, paste0("the extracted Taxonomy ID '", taxon_id, "' is not valid"))
+  }
+} else {
+  genome_name <- NA
+}
+
+if (is.na(genome_name)) {
+  messages <- c(messages, "trying to guess genome name from fasta file")
+  genome_name <- str_remove_all(
+    names(genome_dna)[1],
+    paste0(genome_seqlevels[1], " |chromosome|\\,.*")
+  )
+  messages <- c(messages, paste("extracted genome name:", genome_name))
+  df_taxonomy$name <- paste(df_taxonomy$genus, df_taxonomy$species)
+  tax_entry <- filter(df_taxonomy, name == genome_name)
+  taxon_id <- as.numeric(tax_entry[1, "tax_id"])
+  if (!is.na(taxon_id)) {
+    messages <- c(messages, paste("found taxon ID:", taxon_id))
+  } else {
+    genome_name <- NA
+  }
+}
+
+if (is.na(genome_name)) {
+  messages <- c(messages, "taxonomy guessing failed: falling back to arbitrary taxon ID")
+  genome_name <- "root"
+  taxon_id <- 1
+}
+
+genome_common <- str_flatten(str_split_1(genome_name, " ")[1:2], " ", na.rm = TRUE)
 genome(seqinfo_genome) <- genome_name
-genome_build <- str_remove(read_lines(genome_gff, n_max = 5)[4], "#!genome-build ")
+genome_build_tag <- na.omit(str_match(header_gff, "#!genome-build [a-zA-Z0-9]+"))[1]
+if (!is.na(genome_build_tag)) {
+  genome_build <- str_extract(genome_build_tag, "[a-zA-Z0-9]+$")
+} else {
+  genome_build <- ""
+}
 
 # import genome annotation
 quiet_txdb <- quietly(makeTxDbFromGFF)
@@ -47,7 +98,8 @@ if (!all(seqlevels(txdb) %in% seqlevels(seqinfo_genome))) {
 txdb <- quiet_txdb(
   file = genome_gff,
   organism = genome_name,
-  chrominfo = seqinfo_genome
+  chrominfo = seqinfo_genome,
+  taxonomyId = taxon_id
 )$result
 
 # export sequence file
