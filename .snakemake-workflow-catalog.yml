@@ -1,7 +1,4 @@
 usage:
-  mandatory-flags: # optional definition of additional flags
-    desc: # describe your flags here in a few sentences (they will be inserted below the example commands)
-    flags: # put your flags here
   software-stack-deployment:
     conda: true
     singularity: false
