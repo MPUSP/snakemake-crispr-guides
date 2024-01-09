@@ -1,7 +1,4 @@
 usage:
-  mandatory-flags:
-    desc: No additional flags required
-    flags:
   software-stack-deployment:
     conda: true
     singularity: false

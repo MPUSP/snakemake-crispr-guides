@@ -28,7 +28,7 @@ jobs:
       with:
         directory: .
         snakefile: workflow/Snakefile
-        args: "--lint"
+        args: "--cores 2 --lint"
 
   Testing:
     runs-on: ubuntu-latest
@@ -50,4 +50,4 @@ jobs:
       with:
         directory: .test
         snakefile: workflow/Snakefile
-        args: "--report report.zip"
+        args: "--cores 2 --report report.zip"
