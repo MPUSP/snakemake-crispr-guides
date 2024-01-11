@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
+  - weasyprint=58.0
   - r-base 4.3.1
   - r-essentials=4.3
   - r-tidyverse=2.0.0
