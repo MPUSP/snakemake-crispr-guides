@@ -52,7 +52,7 @@ def check_gff(input_gff, log=[], error=[]):
         added_id = []
         new_gff = []
         gff_source_type = []
-        for i in snakemake.config["get_genome"]["gff_source_type"]:#sm['gff_source_type']
+        for i in snakemake.config["get_genome"]["gff_source_type"]:
             gff_source_type += list(i.items())
         limits = dict(gff_source_type=gff_source_type)
         for rec in GFF.parse(gff_file, limit_info=limits):
