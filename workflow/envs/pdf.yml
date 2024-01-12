@@ -1,6 +1,0 @@
-name: pdf
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - weasyprint=58.0

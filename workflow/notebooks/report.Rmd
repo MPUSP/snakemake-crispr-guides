@@ -62,9 +62,11 @@ suppressPackageStartupMessages({
 
 
 ```{r, echo = FALSE}
-# import some required parameters
+# import required parameters
+target_type <- snakemake@config$design_guides$target_type
 tss_window <- snakemake@config$design_guides$tss_window
-n_examples <- snakemake@config$visualize_guides$show_examples
+tiling_window <- snakemake@config$design_guides$tiling_window
+n_examples <- snakemake@config$report$show_examples
 
 # custom ggplot2 theme that is reused for all later plots
 custom_colors <- c("#E7298A", "#66A61E", "#E6AB02", "#7570B3", "#B3B3B3", "#1B9E77", "#D95F02", "#A6761D")
@@ -119,20 +121,6 @@ save_plot <- function(pl, path = "../figures/", width = 6, height = 6) {
 }
 ```
 
-
-## Result table
-
-Imported table of predicted guide RNAs.
-
-*NOTE: tables are only rendered in HTML output but not PDF.*
-
-Head of the table (first six rows):
-
-```{r, echo = FALSE}
-df_guides <- read_csv(snakemake@input$guides, show_col_types = FALSE)
-head(df_guides)
-```
-
 ## Configuration
 
 Show parameters that were used for guide RNA prediction.
@@ -145,234 +133,568 @@ list_config <- gsub("\"", "", list_config)
 print(list_config)
 ```
 
+## Result tables {.tabset}
+
+This section shows the imported result tables with predicted guide RNAs.
+Only the head of the table is shown (first 10 rows).
+
+*NOTE: tables are only rendered in HTML output but not PDF.*
+
+```{r, echo = FALSE}
+for (tg in target_type) {
+  input_file <- paste0("results/filter_guides/guideRNAs_", tg, ".csv")
+  assign(paste0("df_", tg), read_csv(input_file, show_col_types = FALSE))
+}
+```
+
+### Targets (genes) {-}
+
+- table of guide RNAs targeting genes etc.
+- targets are defined by a certain window size around the annotated transcritions start site
+- defined by variable `target_type` in config file, value `target`
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("df_target" %in% ls()) {
+  head(df_target, n = 10)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
+```
+
+### Intergenic regions {-}
+
+- table of guide RNAs targeting intergenic regions
+- a tiling approach is used to find suitable guide RNAs in regular intervals
+- in the absence of genes, the entire input sequence is tiled
+- defined by variable `target_type` in config file, value `intergenic`
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("df_intergenic" %in% ls()) {
+  head(df_intergenic, n = 10)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+- table of guide RNAs with no target at all
+- random sequences are used to generate these guides
+- limited filtering is performed to exclude off-targets and other problems
+- defined by variable `target_type` in config file, value `ntc`
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("df_ntc" %in% ls()) {
+  head(df_ntc, n = 10)
+} else {
+  print("No data with guide RNAs for no-target controls available.")
+}
+```
 
 ----------
 
 # Summary statistics
 
-## Number of predicted small guide RNAs
+## Number of predicted small guide RNAs {.tabset}
 
 - Overview about number of targeted genes or other elements
 - Overview about number of predicted small guide RNAs (sgRNAs)
 - Distribution of number of sgRNAs per target (gene)
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
-df_n_guides <- df_guides %>%
-  group_by(tx_name) %>%
-  summarize(n_guides = n()) %>%
-  count(n_guides)
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  if (tg == "ntc") {
+    df_ntc$tx_name <- "no-target"
+  }
 
-print(paste0(
-  "Total number of targets (genes) with predicted guide RNAs: ",
-  length(unique(df_guides$tx_name))
-))
+  df_n_guides <- get(paste0("df_", tg)) %>%
+    group_by(tx_name) %>%
+    summarize(n_guides = n()) %>%
+    count(n_guides)
 
-print(paste0(
-  "Total number of predicted guide RNAs: ",
-  nrow(df_guides)
-))
-
-plot_n_guides <- df_n_guides %>%
-  ggplot(aes(x = n_guides, y = n, label = n)) +
-  geom_col(color = NA, fill = custom_colors[1]) +
-  geom_text(size = 3.5, nudge_y = max(df_n_guides$n)*0.03, color = grey(0.5)) + 
-  labs(
-    x = "guides per target", y = "count",
-    title = "Number of predicted guide RNAs per target"
-  ) +
-  custom_theme()
-
-print(plot_n_guides)
-```
-
-## Strand, width, position, and PAM site
-
-- Strand of guides is one of "+" (template strand) or "-" (non-template strand)
-
-
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
-ggpubr::ggarrange(
-  df_guides %>%
-    count(strand) %>%
-    ggplot(aes(x = factor(strand), y = n, label = n)) +
-    geom_col(color = "white", fill = custom_colors[1]) +
-    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
-    labs(x = "strand", y = "count", title = "Guides per strand") +
-    custom_theme(),
-  df_guides %>%
-    count(width) %>%
-    ggplot(aes(x = factor(width), y = n, label = n)) +
-    geom_col(color = "white", fill = custom_colors[1]) +
-    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
-    labs(x = "width", y = "count", title = "Width distribution of guides") +
-    custom_theme(),
-  df_guides %>%
-    count(pam) %>%
-    ggplot(aes(x = factor(pam), y = n, label = n)) +
-    geom_col(color = "white", fill = custom_colors[1]) +
-    geom_text(size = 3.5, nudge_y = nrow(df_guides)/30, color = grey(0.5)) + 
-    labs(x = "pam", y = "count", title = "PAM sequence of guides") +
-    custom_theme(),
-  df_guides %>%
-    ggplot(aes(x = dist_to_tss)) +
-    geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
-    labs(x = "distance [nt]", y = "count", title = "Relative distance to TSS") +
+  plot_n_guides <- df_n_guides %>%
+    ggplot(aes(x = n_guides, y = n, label = n)) +
+    geom_col(color = NA, fill = custom_colors[1]) +
+    geom_text(size = 3.5, nudge_y = max(df_n_guides$n) * 0.03, color = grey(0.5)) +
+    labs(
+      x = "guides per target", y = "count",
+      title = paste0("Number of predicted guide RNAs per target (total N = ", nrow(get(paste0("df_", tg))), ")"),
+      subtitle = paste0("Number of targets with predicted guide RNAs: ", length(unique(get(paste0("df_", tg))$tx_name)))
+    ) +
     custom_theme()
-)
+
+  assign(paste0("plot_n_guides_", tg), plot_n_guides)
+}
 ```
 
-## On-target scores
+### Targets (genes) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_n_guides_target" %in% ls()) {
+  print(plot_n_guides_target)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
+```
+
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_n_guides_intergenic" %in% ls()) {
+  print(plot_n_guides_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_n_guides_ntc" %in% ls()) {
+  print(plot_n_guides_ntc)
+} else {
+  print("No data with guide RNAs for no-target controls available.")
+}
+```
+
+## Strand, width, position, and PAM site {.tabset}
+
+- strand of gene-targeting guides is one of "+" (template strand) or "-" (non-template strand)
+- strand of intergenic regions refers to "+" and "-" strand of genome
+- no-target controls do not have meaningful strand information
+
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  df_guides <- get(paste0("df_", tg))
+  if (!"dist_to_tss" %in% colnames(df_guides)) {
+    df_guides$dist_to_tss <- 0
+  }
+
+  plot_strand <- ggpubr::ggarrange(
+    df_guides %>%
+      count(strand) %>%
+      ggplot(aes(x = factor(strand), y = n, label = n)) +
+      geom_col(color = "white", fill = custom_colors[1]) +
+      geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
+      labs(x = "strand", y = "count", title = "Guides per strand") +
+      custom_theme(),
+    df_guides %>%
+      count(width) %>%
+      ggplot(aes(x = factor(width), y = n, label = n)) +
+      geom_col(color = "white", fill = custom_colors[1]) +
+      geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
+      labs(x = "width", y = "count", title = "Width distribution of guides") +
+      custom_theme(),
+    df_guides %>%
+      count(pam) %>%
+      ggplot(aes(x = factor(pam), y = n, label = n)) +
+      geom_col(color = "white", fill = custom_colors[1]) +
+      geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
+      labs(x = "pam", y = "count", title = "PAM sequence of guides") +
+      custom_theme(),
+    df_guides %>%
+      ggplot(aes(x = dist_to_tss)) +
+      geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
+      labs(x = "distance [nt]", y = "count", title = "Relative distance to TSS") +
+      custom_theme()
+  )
+  assign(paste0("plot_strand_", tg), plot_strand)
+}
+```
+
+### Targets (genes) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_strand_target" %in% ls()) {
+  print(plot_strand_target)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
+```
+
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_strand_intergenic" %in% ls()) {
+  print(plot_strand_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_strand_ntc" %in% ls()) {
+  print(plot_strand_ntc)
+} else {
+  print("No data with guide RNAs for no-target controls available.")
+}
+```
+
+## On-target scores {.tabset}
 
 - What is the distribution of on-target scores?
 - 'Good' distributions should be normally distributed between a range of 0 and 1
 - 'Bad' distributions are too narrow, indicating that the score is probably not useful to differentiate between high and low efficacy
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
-df_guides %>%
-  select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
-  pivot_longer(
-    cols = everything(),
-    names_to = "score",
-    values_to = "value",
-    names_transform = function(x) gsub("score_", "", x)
-  ) %>%
-  ggplot(aes(x = value)) +
-  geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
-  labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
-  facet_wrap(~ score) +
-  custom_theme()
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  if (tg != "ntc") {
+    df_guides <- get(paste0("df_", tg))
+    plot_scores <- df_guides %>%
+      select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
+      pivot_longer(
+        cols = everything(),
+        names_to = "score",
+        values_to = "value",
+        names_transform = function(x) gsub("score_", "", x)
+      ) %>%
+      ggplot(aes(x = value)) +
+      geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
+      labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
+      facet_wrap(~score) +
+      custom_theme()
+
+    assign(paste0("plot_scores_", tg), plot_scores)
+  }
+}
 ```
 
-----------
+
+### Targets (genes) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_scores_target" %in% ls()) {
+  print(plot_scores_target)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
+```
+
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_scores_intergenic" %in% ls()) {
+  print(plot_scores_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+print("No data with guide RNAs for no-target controls available.")
+```
+
+## Correlation between scores {.tabset}
 
 - What is the correlation between scores?
 - Depicted is the scatter plot of each score against each other, as well as the correlation coefficient _R_
 - It is not unusual that scores show a low degree of correlation with each other
-- However a slight positive correlation should be visible, a negative correlation would be problematic
+- However a slight positive correlation should be visible; a negative correlation would mean that scores are contradicting each other
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
-df_guides %>%
-  select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
-  rename_with(.fn = function(x) gsub("score_", "", x)) %>%
-  ggpairs(
-    upper = list(continuous = "cor"),
-    lower = list(continuous = wrap("points", alpha = 0.8, size = 0.3, color = custom_colors[1])),
-    diag = list(continuous = wrap("densityDiag", color = grey(0.3), fill = custom_colors[1])),
-    progress = FALSE) +
-  labs(
-    x = "", y = "",
-    title = "Correlation of scores with each other",
-    subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
-  ) +
-  custom_theme()
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  if (tg != "ntc") {
+    df_guides <- get(paste0("df_", tg))
+    plot_scorecorr <- df_guides %>%
+      select(matches("^score_") & !matches("^score_(cfd|mit)")) %>%
+      rename_with(.fn = function(x) gsub("score_", "", x)) %>%
+      ggpairs(
+        upper = list(continuous = "cor"),
+        lower = list(continuous = wrap("points", alpha = 0.8, size = 0.3, color = custom_colors[1])),
+        diag = list(continuous = wrap("densityDiag", color = grey(0.3), fill = custom_colors[1])),
+        progress = FALSE
+      ) +
+      labs(
+        x = "", y = "",
+        title = "Correlation of scores with each other",
+        subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
+      ) +
+      custom_theme()
+
+    assign(paste0("plot_scorecorr_", tg), plot_scorecorr)
+  }
+}
+```
+
+### Targets (genes) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_scorecorr_target" %in% ls()) {
+  print(plot_scorecorr_target)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
+```
+
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_scorecorr_intergenic" %in% ls()) {
+  print(plot_scorecorr_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+print("No data with guide RNAs for no-target controls available.")
 ```
 
 
-## Location of guide RNAs
+## Location of guide RNAs - overview {.tabset}
 
 - The following figures show the position of guide RNAs on a selection of target genes
 - The first figure shows the distribution of all relative guide RNA positions
-- The next figure shows a selection of the first 30 genes for the purpose of quality control
+
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  df_guides <- get(paste0("df_", tg))
+  if (tg == "intergenic") {
+    titletext <- "Distribution of all guide RNAs over the tiling windows"
+    df_guides <- df_guides %>%
+      mutate(dist_to_tss = start - (tiling_window * (tx_window - 1)))
+  }
+  if (tg == "target") {
+    titletext <- "Distribution of all guide RNAs over the TSS window"
+  }
+  if (tg != "ntc") {
+    plot_location <- df_guides %>%
+      ggplot(aes(x = dist_to_tss)) +
+      geom_histogram(fill = custom_colors[1], bins = 50) +
+      geom_smooth(
+        data = count(df_guides, dist_to_tss),
+        aes(x = dist_to_tss, y = n),
+        method = "loess", formula = y ~ x,
+        color = grey(0.3), fill = grey(0.6)
+      ) +
+      labs(
+        x = "", y = "",
+        title = titletext,
+        subtitle = "Bars are sgRNAs counts per position, ribbon is smoothed average"
+      ) +
+      custom_theme()
+
+    assign(paste0("plot_location_", tg), plot_location)
+  }
+}
+```
+
+### Targets (genes) {-}
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
-df_guides %>%
-  dplyr::count(dist_to_tss) %>%
-  ggplot(aes(x = dist_to_tss, y = n)) +
-  geom_col(fill = custom_colors[1]) +
-  geom_smooth(
-    method = "loess", formula = y ~ x,
-    color = grey(0.3), fill = custom_colors[1]
-  ) +
-  labs(
-    x = "", y = "",
-    title = "Distribution of all guide RNAs over the TSS window",
-    subtitle = "Bars are sgRNAs counts per position, ribbon is smoothed average"
-  ) +
-  custom_theme()
+if ("plot_location_target" %in% ls()) {
+  print(plot_location_target)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
 ```
 
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_location_intergenic" %in% ls()) {
+  print(plot_location_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+print("No data with guide RNAs for no-target controls available.")
+```
+
+## Location of guide RNAs - examples {.tabset}
+
+- These figures show a selection of the first N genes/regions for the purpose of quality control
+- For intergenic regions, the first N genomic windows ("tiles") with width `tiling_window` are shown
+- If both genes and intergenic regions are targeted, some intergenic regions might be too narrow to find guides
+- The number of example genes/regions is controlled by parameter `show_examples` in the config file
+
+```{r, echo = FALSE}
+# function to draw guide RNAs
+draw_guide_location <- function(df, n_examples) {
+  df <- filter(df, tx_name %in% unique(df$tx_name)[1:n_examples])
+  if ("tss_strand" %in% colnames(df)) {
+    df %>%
+      mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
+        factor(., unique(.))) %>%
+      mutate(
+        xstart = case_when(
+          tss_strand == "+" & strand == "+" ~ start - tss_pos,
+          tss_strand == "+" & strand == "-" ~ end - tss_pos,
+          tss_strand == "-" & strand == "-" ~ -1 * (end - tss_pos),
+          tss_strand == "-" & strand == "+" ~ -1 * (start - tss_pos),
+        ),
+        xend = case_when(
+          tss_strand == "+" & strand == "+" ~ end - tss_pos,
+          tss_strand == "+" & strand == "-" ~ start - tss_pos,
+          tss_strand == "-" & strand == "-" ~ -1 * (start - tss_pos),
+          tss_strand == "-" & strand == "+" ~ -1 * (end - tss_pos),
+        ),
+        y = ifelse(strand == tss_strand, 0.25, -0.25)
+      ) %>%
+      ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
+      geom_segment(
+        x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
+        linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
+      ) +
+      geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
+        linewidth = 1.33, color = grey(0.3), lineend = "square", linejoin = "mitre", arrow = arrow(
+          angle = 30, length = unit(0.02, "inches"),
+          type = "closed"
+        )
+      ) +
+      geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
+        linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
+          angle = 30, length = unit(0.01, "inches"),
+          type = "closed"
+        )
+      ) +
+      facet_wrap(~tx_name, ncol = 1) +
+      coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
+      labs(
+        x = "distance to TSS [nt]", y = "",
+        title = paste0("Guide RNA location in TSS window, for the first ", n_examples, " genes"),
+        subtitle = paste0(
+          "Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
+          "Note that genes on the '-' strand are shown as reverse-complement"
+        )
+      ) +
+      custom_theme(legend.position = 0) +
+      scale_color_manual(values = custom_colors[1:2]) +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  } else {
+    # for no-gene targeting guides, the situation is much simpler
+    df %>%
+      mutate(
+        start = start - (tiling_window * (tx_window - 1)),
+        end = end - (tiling_window * (tx_window - 1)),
+        xstart = ifelse(strand == "+", start, end),
+        xend = ifelse(strand == "+", end, start),
+        y = ifelse(strand == "+", 0.25, -0.25)
+      ) %>%
+      ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
+      geom_segment(
+        x = 0, y = 0, xend = tiling_window, yend = 0,
+        linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
+      ) +
+      geom_segment(aes(color = strand),
+        linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
+          angle = 30, length = unit(0.01, "inches"),
+          type = "closed"
+        )
+      ) +
+      facet_wrap(~tx_name, ncol = 1) +
+      coord_cartesian(ylim = c(-0.5, 0.5), xlim = c(0, tiling_window)) +
+      labs(
+        x = "position in tile [nt]", y = "",
+        title = paste0("Guide RNA location in genomic tiles, for the first ", n_examples, " tiles"),
+        subtitle = "Colored arrows: guide RNAs, gray line: genomic window."
+      ) +
+      custom_theme(legend.position = 0) +
+      scale_color_manual(values = custom_colors[1:2]) +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  }
+}
+```
+
+### Targets (genes) {-}
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
-df_guides %>%
-  filter(tx_name %in% unique(df_guides$tx_name)[1:n_examples]) %>%
-  mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
-    factor(., unique(.))) %>%
-  mutate(
-    xstart = case_when(
-      tss_strand == "+" & strand == "+" ~ start - tss_pos,
-      tss_strand == "+" & strand == "-" ~ end - tss_pos,
-      tss_strand == "-" & strand == "-" ~ -1 * (end - tss_pos),
-      tss_strand == "-" & strand == "+" ~ -1 * (start - tss_pos),
-    ),
-    xend = case_when(
-      tss_strand == "+" & strand == "+" ~ end - tss_pos,
-      tss_strand == "+" & strand == "-" ~ start - tss_pos,
-      tss_strand == "-" & strand == "-" ~ -1 * (start - tss_pos),
-      tss_strand == "-" & strand == "+" ~ -1 * (end - tss_pos),
-    )
-  ) %>%
-  mutate(y = ifelse(strand == tss_strand, 0.25, -0.25)) %>%
-  ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
-  geom_segment(
-    x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
-    linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
-  ) +
-  geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
-    linewidth = 1.33, color = grey(0.3), lineend = "square", linejoin = "mitre", arrow = arrow(
-      angle = 30, length = unit(0.02, "inches"),
-      type = "closed"
-    )
-  ) +
-  geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
-    linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
-      angle = 30, length = unit(0.01, "inches"),
-      type = "closed"
-    )
-  ) +
-  facet_wrap(~tx_name, ncol = 1) +
-  coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
-  labs(
-    x = "distance to TSS [nt]", y = "",
-    title = paste0("Guide RNA location in TSS window, for the first ", n_examples, " genes"),
-    subtitle = paste0("Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
-      "Note that genes on the '-' strand are shown as reverse-complement")
-  ) +
-  custom_theme(legend.position = 0) +
-  scale_color_manual(values = custom_colors[1:2]) +
-  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+if ("target" %in% target_type) {
+  draw_guide_location(df_target, n_examples)
+} else {
+  print("No data with guide RNAs targeting genes etc available.")
+}
 ```
 
-## Guides with multiple targets
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
+if ("intergenic" %in% target_type) {
+  draw_guide_location(df_intergenic, n_examples)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
+print("No data with guide RNAs for no-target controls available.")
+```
+
+## Guides with multiple targets {.tabset}
 
  - Some guides target several genes/elements within a genome
  - these multi-target guides can be off-targets (not desired)
  - or they can target duplicated genes/element (desired)
  - if multi-target guides are to be included or not can be controlled with the `filter_multi_targets` config parameter (default: `TRUE`)
- - the following figure gives an overview about the number of multi-target guides, if they were not filtered
+ - this figure gives an overview about the number of multi-target guides, if they were not filtered
+
+```{r, echo = FALSE, warning = FALSE}
+for (tg in target_type) {
+  if (tg != "ntc") {
+    df_guides <- get(paste0("df_", tg))
+    if ("multi_target" %in% colnames(df_guides)) {
+      plot_multi_targets <- df_guides %>%
+        mutate(multi_target = ifelse(multi_target, "multi-target", "single target")) %>%
+        group_by(multi_target) %>%
+        count(seqnames) %>%
+        ggplot(aes(x = n, y = "count", fill = multi_target, label = n)) +
+        geom_col(position = position_dodge2()) +
+        geom_text(aes(color = multi_target, x = n + max(n) / 30),
+          position = position_dodge(0.9), size = 3.5
+        ) +
+        labs(
+          x = "", y = "",
+          title = "Multi-target guides per chromosome",
+          subtitle = "Bars are sgRNA counts, color indicates target type"
+        ) +
+        facet_wrap(~seqnames, ncol = 1) +
+        custom_theme(legend.position = "bottom") +
+        scale_fill_manual(values = custom_colors[2:1]) +
+        scale_color_manual(values = custom_colors[2:1]) +
+        theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+
+      assign(paste0("plot_multi_targets_", tg), plot_multi_targets)
+    }
+  }
+}
+```
+
+### Targets (genes) {-}
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
-if ("multi_target" %in% colnames(df_guides)) {
-  df_guides %>%
-    mutate(multi_target = ifelse(multi_target, "multi-target", "single target")) %>%
-    group_by(multi_target) %>%
-    count(seqnames) %>%
-    ggplot(aes(x = n, y = "count", fill = multi_target, label = n)) +
-    geom_col(position = position_dodge2()) +
-    geom_text(aes(color = multi_target, x = n + max(n)/30),
-      position = position_dodge(0.9), size = 3.5) + 
-    labs(
-      x = "", y = "",
-      title = "Multi-target guides per chromosome",
-      subtitle = "Bars are sgRNA counts, color indicates target type"
-    ) +
-    facet_wrap(~seqnames, ncol = 1) +
-    custom_theme(legend.position = "bottom") +
-    scale_fill_manual(values = custom_colors[2:1]) +
-    scale_color_manual(values = custom_colors[2:1]) +
-    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+if ("plot_multi_targets_target" %in% ls()) {
+  print(plot_multi_targets_target)
 } else {
-  print("No guides with multiple targets found in data set.")
+  print("No data with guide RNAs targeting genes etc available.")
 }
+```
+
+### Intergenic regions {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+if ("plot_multi_targets_intergenic" %in% target_type) {
+  print(plot_multi_targets_intergenic)
+} else {
+  print("No data with guide RNAs targeting intergenic regions available.")
+}
+```
+
+### No-target controls (NTC) {-}
+
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+print("No data with guide RNAs for no-target controls available.")
 ```
 
 ## Targets where no guides were designed
@@ -385,30 +707,38 @@ if ("multi_target" %in% colnames(df_guides)) {
 - the following table and figure shows the targets where no guides were found, if any
 
 ```{r, echo = FALSE}
-df_guides_fail <- read_csv(snakemake@input$failed, show_col_types = FALSE)
-if (nrow(df_guides_fail) > 0) {
-  df_guides_fail
+if ("target" %in% target_type) {
+  df_fail <- read_csv("results/filter_guides/guideRNAs_target_failed.csv", show_col_types = FALSE)
+  if (nrow(df_fail) > 0) {
+    df_fail
+  } else {
+    print("No genes/targets without guide RNAs were found")
+  }
 } else {
-  print("No genes/targets without guide RNAs were found")
+  print("No genes were supplied as targets, therefore no design failures.")
 }
 ```
 
 ```{r, echo = FALSE}
-if (nrow(df_guides_fail) > 0) {
-  df_guides_fail %>%
-    ggplot(aes(x = start/1000, y = 0, color = strand, label = tx_name)) +
-    geom_point() +
-    geom_text_repel(size = 2.5, max.overlaps = 50) +
-    coord_cartesian(ylim = c(-0.5, 0.5)) +
-    labs(
-      x = "position [kbp]", y = "",
-      title = paste0("Location of targets where no guides could be found (", nrow(df_guides_fail), ")"),
-      subtitle = paste0("Dots: genes, color: strand")
-    ) +
-    facet_wrap(~seqnames, ncol = 1) +
-    custom_theme(legend.position = "bottom") +
-    scale_color_manual(values = custom_colors[1:2]) +
-    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+if ("target" %in% target_type) {
+  if (nrow(df_fail) > 0) {
+    df_fail %>%
+      ggplot(aes(x = start / 1000, y = 0, color = strand, label = tx_name)) +
+      geom_point() +
+      geom_text_repel(size = 2.5, max.overlaps = 50) +
+      coord_cartesian(ylim = c(-0.5, 0.5)) +
+      labs(
+        x = "position [kbp]", y = "",
+        title = paste0("Location of targets where no guides could be found (", nrow(df_fail), ")"),
+        subtitle = paste0("Dots: genes, color: strand")
+      ) +
+      facet_wrap(~seqnames, ncol = 1) +
+      custom_theme(legend.position = "bottom") +
+      scale_color_manual(values = custom_colors[1:2]) +
+      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  }
+} else {
+  print("No genes were supplied as targets, therefore no design failures.")
 }
 ```
 
@@ -432,7 +762,7 @@ The pipeline is developed at the [Max Planck Unit for the Science of Pathogens](
 
 This list shows the fixed dependencies used as `conda` environment variables within the pipeline.
 
-```{r, echo = FALSE, warnings = FALSE}
+```{r, echo = FALSE, warnings = FALSE, eval = FALSE}
 versions <- read_delim("results/versions/log_packages.txt",
   delim = "\n",
   show_col_types = FALSE,
@@ -463,7 +793,7 @@ sessionInfo()
 
 ```{r, echo = FALSE}
 write_lines(
-  "VISUALIZE_GUIDES: finished writing HTML report successfully",
-  file = "results/visualize_guides/log.txt"
+  "REPORT: finished writing HTML report successfully",
+  file = snakemake@log$path
 )
 ```

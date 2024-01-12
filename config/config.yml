@@ -3,29 +3,36 @@ get_genome:
   assembly: "GCF_000006945.2"
   fasta: Null
   gff: Null
+  gff_source_type: ['RefSeq': 'gene', 'RefSeq': 'pseudogene', 'RefSeq': 'CDS', 'Protein Homology': 'CDS']
 
 design_guides:
-  target_region:  ["NC_003277.2"]
-  tss_window:  [-100, 400]
-  circular:  False
-  canonical:  True
-  strands:  "both"
-  spacer_length:  20
-  guide_aligner:  "bowtie"
-  crispr_enzyme:  "SpCas9"
-  gc_content_range:  [30, 70]
-  score_methods:  ["ruleset1", "ruleset3", "crisprater", "crisprscan", "tssdist", "genrich"]
-  score_weights:  [1, 1, 1, 1, 1, 1]
-  restriction_sites:  Null
-  bad_seeds:  ["ACCCA", "ATACT", "TGGAA"]
-  filter_top_n:  5
-  filter_score_threshold:  Null
+  target_region: ["NC_003277.2"]
+  target_type: ["target", "intergenic", "ntc"]
+  tss_window: [-100, 400]
+  tiling_window: 1000
+  circular: False
+  canonical: True
+  strands: "both"
+  spacer_length: 20
+  guide_aligner: "bowtie"
+  crispr_enzyme: "SpCas9"
+  score_methods:
+    ["ruleset1", "ruleset3", "crisprater", "crisprscan", "tssdist", "genrich"]
+  score_weights: [1, 1, 1, 1, 1, 1]
+  restriction_sites: Null
+  bad_seeds: ["ACCCA", "ATACT", "TGGAA"]
+  no_target_controls: 100
+
+filter_guides:
+  filter_best_per_gene: 10
+  filter_best_per_tile: 10
+  filter_score_threshold: Null
   filter_multi_targets: True
   filter_rna: True
-  no_target_controls: 100
+  gc_content_range: [30, 70]
   fiveprime_linker: Null
   threeprime_linker: Null
-  export_as_gff: False
+  export_as_gff: True
 
-visualize_guides:
+report:
   show_examples: 20

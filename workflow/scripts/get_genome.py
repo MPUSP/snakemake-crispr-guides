@@ -51,14 +51,10 @@ def check_gff(input_gff, log=[], error=[]):
     with open(input_gff, "r") as gff_file:
         added_id = []
         new_gff = []
-        limits = dict(
-            gff_source_type=[
-                ("RefSeq", "gene"),
-                ("RefSeq", "pseudogene"),
-                ("RefSeq", "CDS"),
-                ("Protein Homology", "CDS"),
-            ]
-        )
+        gff_source_type = []
+        for i in snakemake.config["get_genome"]["gff_source_type"]:
+            gff_source_type += list(i.items())
+        limits = dict(gff_source_type=gff_source_type)
         for rec in GFF.parse(gff_file, limit_info=limits):
             for recfeat in rec.features:
                 rec_keys = recfeat.qualifiers.keys()

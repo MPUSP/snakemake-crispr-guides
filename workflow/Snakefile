@@ -83,19 +83,21 @@ rule bsgenome:
 # module to design guide RNAs using R crisprDesign
 # -----------------------------------------------------
 rule design_guides:
+    params:
+        config["design_guides"],
+        max_cores=workflow.cores,
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
         bowtie_index=rules.bowtie_index.output.path,
         bsgenome=rules.bsgenome.output.bsgenome,
         seqinfo=rules.bsgenome.output.seqinfo,
-    params:
-        config["design_guides"],
-        max_cores=workflow.cores,
     output:
-        guideRNAs_top="results/design_guides/guideRNAs_top.csv",
-        guideRNAs_fail="results/design_guides/guideRNAs_fail.csv",
-        guideRNAs_ntc="results/design_guides/guideRNAs_ntc.csv",
+        expand(
+            "results/design_guides/guideRNAs_{guideset}.RData",
+            guideset=config["design_guides"]["target_type"],
+        ),
+        list_tx="results/design_guides/list_tx.csv",
     conda:
         "envs/design_guides.yml"
     log:
@@ -104,35 +106,57 @@ rule design_guides:
         "scripts/design_guides.R"
 
 
+# module to design guide RNAs using R crisprDesign
+# -----------------------------------------------------
+rule filter_guides:
+    params:
+        config["filter_guides"],
+        max_cores=workflow.cores,
+    input:
+        guideset="results/design_guides/guideRNAs_{guideset}.RData",
+        list_tx=rules.design_guides.output.list_tx,
+    output:
+        guideset_csv="results/filter_guides/guideRNAs_{guideset}.csv",
+        guideset_gff="results/filter_guides/guideRNAs_{guideset}.gff",
+    conda:
+        "envs/design_guides.yml"
+    log:
+        path="results/filter_guides/guideRNAs_{guideset}.log",
+    script:
+        "scripts/filter_guides.R"
+
+
 # module to visualize guide RNA prediction using R
 # -----------------------------------------------------
-rule visualize_guides:
+rule report_html:
     input:
-        guides=rules.design_guides.output.guideRNAs_top,
-        failed=rules.design_guides.output.guideRNAs_fail,
+        expand(
+            "results/filter_guides/guideRNAs_{guideset}.csv",
+            guideset=config["design_guides"]["target_type"],
+        ),
     params:
-        config["visualize_guides"],
+        config["report"],
     output:
-        html="results/visualize_guides/report.html",
+        html="results/report/report.html",
     conda:
-        "envs/visualize_guides.yml"
+        "envs/report.yml"
     log:
-        path="results/visualize_guides/log.txt",
+        path="results/report/html_log.txt",
     script:
         "notebooks/report.Rmd"
 
 
 # module to convert HTML to PDF output
 # -----------------------------------------------------
-rule pdf:
+rule report_pdf:
     input:
-        html=rules.visualize_guides.output.html,
+        html=rules.report_html.output.html,
     output:
-        pdf="results/pdf/report.pdf",
+        pdf="results/report/report.pdf",
     conda:
-        "envs/pdf.yml"
+        "envs/report.yml"
     log:
-        path="results/pdf/log.txt",
+        path="results/report/pdf_log.txt",
     shell:
         "weasyprint -v {input.html} {output.pdf} &> {log.path}"
 
@@ -144,8 +168,8 @@ rule module_logs:
         rules.get_genome.log.path,
         rules.bowtie_index.log.path,
         rules.design_guides.log.path,
-        rules.visualize_guides.log.path,
-        rules.pdf.log.path,
+        rules.report_html.log.path,
+        rules.report_pdf.log.path,
     conda:
         "envs/basic.yml"
     log:

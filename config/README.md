@@ -15,7 +15,7 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 - all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
 - but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
 
-### Execution
+### Starting the workflow
 
 To run the workflow from command line, change the working directory.
 
@@ -49,37 +49,50 @@ snakemake --cores 10 --use-conda \
 
 This table lists all parameters that can be used to run the workflow.
 
-| parameter              | type      | details                                      | default                         |
-| ---------------------- | --------- | -------------------------------------------- | ------------------------------- |
-| GET_GENOME             |           |                                              |                                 |
-| database               | character | one of `ncbi`, `manual`                      | `ncbi`                          |
-| assembly               | character | RefSeq ID                                    | `GCF_000006945.2`               |
-| fasta                  | path      | optional input                               | `Null`                          |
-| gff                    | path      | optional input                               | `Null`                          |
-| DESIGN_GUIDES          |           |                                              |                                 |
-| target_region          | numeric   | use subset of regions for testing            | `["NC_003277.2"]`               |
-| tss_window             | numeric   | upstream/downstream window around TSS        | `[0, 500]`                      |
-| circular               | logical   | is the genome circular?                      | `False`                         |
-| canonical              | logical   | only canonical PAM sites are included        | `True`                          |
-| strands                | character | target `coding`, `template` or `both`        | `both`                          |
-| spacer_length          | numeric   | desired length of guides                     | `20`                            |
-| guide_aligner          | character | one of `biostrings`, `bowtie`                | `biostrings`                    |
-| crispr_enzyme          | character | CRISPR enzyme ID                             | `SpCas9`                        |
-| gc_content_range       | numeric   | range of allowed GC content                  | `[30, 70]`                      |
-| score_methods          | character | see _crisprScore_ package                    | default scores are listed below |
-| score_weights          | numeric   | opt. weights when calculating mean score     | `[1, 1, 1, 1, 1, 1]`            |
-| restriction_sites      | character | sequences to omit in entire guide            | `Null`                          |
-| bad_seeds              | character | sequences to omit in seed region             | `["ACCCA", "ATACT", "TGGAA"]`   |
-| filter_top_n           | numeric   | max number of guides to return               | `10`                            |
-| filter_score_threshold | numeric   | mean score to use as lower limit             | `Null`                          |
-| filter_multi_targets   | logical   | remove guides that perfectly match >1 target | `True`                          |
-| filter_rna             | logical   | remove guides that target e.g. rRNA or tRNA  | `True`                          |
-| no_target_controls     | numeric   | number of non-targeting control guides       | `100`                           |
-| fiveprime_linker       | character | optionally add 5' linker to each guide       | `Null`                          |
-| threeprime_linker      | character | optionally add 3' linker to each guide       | `Null`                          |
-| export_as_gff          | logical   | export result table also as `.gff` file      | `False`                         |
-| VISUALIZE_GUIDES       |           |                                              |                                 |
-| show_examples          | numeric   | number of genes to show guide position       | `10`                            |
+| parameter              | type    | details                                        | default                           |
+| ---------------------- | ------- | ---------------------------------------------- | --------------------------------- |
+| GET_GENOME             |         |                                                |                                   |
+| database               | string  | one of `ncbi`, `manual`                        | `ncbi`                            |
+| assembly               | string  | RefSeq ID                                      | `GCF_000006945.2`                 |
+| fasta                  | path    | optional input                                 | `Null`                            |
+| gff                    | path    | optional input                                 | `Null`                            |
+| gff_source_type        | list    | allowed source types in GFF file               | `'RefSeq': 'gene', ...`           |
+| DESIGN_GUIDES          |         |                                                |                                   |
+| target_region          | numeric | use subset of regions for testing              | `["NC_003277.2"]`                 |
+| target_type            | string  | specify targets for guide design (see below)   | `["target", "intergenic", "ntc"]` |
+| tss_window             | numeric | upstream/downstream window around TSS          | `[0, 500]`                        |
+| tiling_window          | numeric | window size for intergenic regions             | `1000`                            |
+| circular               | logical | is the genome circular?                        | `False`                           |
+| canonical              | logical | only canonical PAM sites are included          | `True`                            |
+| strands                | string  | target `coding`, `template` or `both`          | `both`                            |
+| spacer_length          | numeric | desired length of guides                       | `20`                              |
+| guide_aligner          | string  | one of `biostrings`, `bowtie`                  | `biostrings`                      |
+| crispr_enzyme          | string  | CRISPR enzyme ID                               | `SpCas9`                          |
+| score_methods          | string  | see _crisprScore_ package                      | default scores are listed below   |
+| score_weights          | numeric | opt. weights when calculating mean score       | `[1, 1, 1, 1, 1, 1]`              |
+| restriction_sites      | string  | sequences to omit in entire guide              | `Null`                            |
+| bad_seeds              | string  | sequences to omit in seed region               | `["ACCCA", "ATACT", "TGGAA"]`     |
+| no_target_controls     | numeric | number of non targeting guides (neg. controls) | 100                               |
+| FILTER_GUIDES          |         |                                                |                                   |
+| filter_best_per_gene   | numeric | max number of guides to return per gene        | `10`                              |
+| filter_best_per_tile   | numeric | max number of guides to return per ig/tile     | `10`                              |
+| filter_score_threshold | numeric | mean score to use as lower limit               | `Null`                            |
+| filter_multi_targets   | logical | remove guides that perfectly match >1 target   | `True`                            |
+| filter_rna             | logical | remove guides that target e.g. rRNA or tRNA    | `True`                            |
+| gc_content_range       | numeric | range of allowed GC content                    | `[30, 70]`                        |
+| fiveprime_linker       | string  | optionally add 5' linker to each guide         | `Null`                            |
+| threeprime_linker      | string  | optionally add 3' linker to each guide         | `Null`                            |
+| export_as_gff          | logical | export result table also as `.gff` file        | `False`                           |
+| REPORT                 |         |                                                |                                   |
+| show_examples          | numeric | number of genes to show guide position         | `10`                              |
+
+### Target type
+
+One of the most important options is to specify the *type of target* with the `target_type` parameter. The pipeline can generate up to three different types of guide RNAs:
+
+1. guides for **targets** - these are typically genes, promoters or other annotated genetic elements determined from the supplied GFF file. The pipeline will try to find the best guides by position and score targeting the defined window around the start of the gene/feature (parameter `tss_window`). The number of guides is specified with `filter_best_per_gene`.
+2. guides for **intergenic regions** - for non-annotated regions (or in the absence of any targets), the pipeline attempts to design guide RNAs using a 'tiling' approach. This means that the supplied genome is subdivided into 'tiles' (bins) of width `tiling_window`, and the best guide RNAs per window are selected. The number of guides is specified with `filter_best_per_tile`.
+3. guides **not targeting anything** - this type of guide RNAs is most useful as negative control, in order to gauge the effect of the genetic background on mutant selection without targeting a gene. These guides are random nucleotide sequences with the same length as the target guide RNAs. The no-target control guides are named `NTC_<number>` and exported in a separate table (`results/filter_guides/guideRNAs_ntc.csv`). Some very reduced checks are done for these guides, such as off-target binding. mMst on-target checks are omitted for these guides as they have no defined binding site, strand, or other typical guide properties.
 
 ### Off-target scores
 
@@ -107,7 +120,3 @@ The strand specificity is important for some CRISPR applications. In contrast to
 - For CRISPRi (inhibition) experiments, the literature recommends to target the **coding strand for the CDS** or **both strands for the promoter** ([Larson et al., Nat Prot, 2013](http://dx.doi.org/10.1038/nprot.2013.132))
 - this pipeline will automatically filter guides for the chosen strand
 - for example, if only guides for the coding (non-template) strand are desired, genes on the "+" strand will be targeted with reverse-complement guides ("-"), and genes on the "-" strand with "+" guides.
-
-### Random control guides
-
-The pipeline includes the option to design random control guides. These are simply random nucleotide sequences with the same length as specified for the actual guide RNAs. The control guides are named `NTC_<number>` and exported in a separate table, by default as `results/design_guides/guideRNAs_ntc.csv`. Some very reduced checks are done for these guides, such as off-target binding. However most on-target checks are omitted for these guides as they have no defined binding site, strand, or other typical guide properties. Linkers are added when specified.
