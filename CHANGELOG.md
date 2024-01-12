@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.1.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.0.0...v1.1.0) (2024-01-12)
+
+
+### Features
+
+* added config README and updated workflow catalog options ([13649a1](https://github.com/MPUSP/snakemake-crispr-guides/commit/13649a179c621411a5df830d2d7a9c35626a25ca))
+* added image with pipeline overview ([69a816c](https://github.com/MPUSP/snakemake-crispr-guides/commit/69a816c7bc07c8db3a1f479c49526d71a10bcc64))
+* added option to export guide list as gff file, closes [#16](https://github.com/MPUSP/snakemake-crispr-guides/issues/16) ([470025c](https://github.com/MPUSP/snakemake-crispr-guides/commit/470025c666c193cbe165bb39f6de5964391c2025))
+* major and changes to support tiling based guide design ([478c68f](https://github.com/MPUSP/snakemake-crispr-guides/commit/478c68f87673baeb533fcbd2dfb184267967a492))
+* more flexibility with chromosome names, updated envs, closes [#15](https://github.com/MPUSP/snakemake-crispr-guides/issues/15) ([edd1d16](https://github.com/MPUSP/snakemake-crispr-guides/commit/edd1d1601688372d7f84bf3bb3866ed96377e442))
+* parsing of GFF file improved considerably by using bcbio GFF lib, [#15](https://github.com/MPUSP/snakemake-crispr-guides/issues/15) ([80c66ff](https://github.com/MPUSP/snakemake-crispr-guides/commit/80c66ff35eabda23d190609764332477e4e54fef))
+* smarter retrieveal of genome name and tax ID; closes [#19](https://github.com/MPUSP/snakemake-crispr-guides/issues/19) ([afdc2e3](https://github.com/MPUSP/snakemake-crispr-guides/commit/afdc2e3827ee46fce77eca0c838f4a5cc9d746af))
+
+
+### Bug Fixes
+
+* added --cores to lint command ([c9fd2a5](https://github.com/MPUSP/snakemake-crispr-guides/commit/c9fd2a589f7eee0ae23943839f38bb0272899005))
+* added missing example pics ([7a935a8](https://github.com/MPUSP/snakemake-crispr-guides/commit/7a935a8a4012618ec827444f7436603bb5f05002))
+* added option to specify GFF sources in config file; closes [#21](https://github.com/MPUSP/snakemake-crispr-guides/issues/21) ([b02e869](https://github.com/MPUSP/snakemake-crispr-guides/commit/b02e869945abdee5b2c96f2c045862fb7468768a))
+* availability of tx_list when target is empty ([2e0a248](https://github.com/MPUSP/snakemake-crispr-guides/commit/2e0a248e852810440445088e70c21421cf5e92d8))
+* bumped versions and removed unnecessary dependency ([2a1975a](https://github.com/MPUSP/snakemake-crispr-guides/commit/2a1975abf0e233d39aa2c7a40c9c2dad46edf42e))
+* extended documentation for 'usage' page on sm-workflow-catalog ([bd6b4fe](https://github.com/MPUSP/snakemake-crispr-guides/commit/bd6b4fef6cd3ea4c1520ed4cbde4b8a337e14d0c))
+* removed 1 branch from CI test workflow ([f3fe343](https://github.com/MPUSP/snakemake-crispr-guides/commit/f3fe343bee4ccaafa1841e0b8af4e92e5438916e))
+* removed a comment ([ac5a6e2](https://github.com/MPUSP/snakemake-crispr-guides/commit/ac5a6e2bfb8ffabede32caaa9f2dd98c14ce035f))
+* removed additional flag fields entirely ([53319a0](https://github.com/MPUSP/snakemake-crispr-guides/commit/53319a0c279ed29f322372d216a9f230b57a33b4))
+* restored original empty fields for flags ([01ef026](https://github.com/MPUSP/snakemake-crispr-guides/commit/01ef0265e24d22361895fc7edbe21497d67e1d69))
+
 ## 1.0.0 (2023-07-13)
 
 
