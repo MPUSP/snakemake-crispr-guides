@@ -243,11 +243,15 @@ for (target in target_type) {
 }
 
 # export list of transcripts/target genes for filtering module
-df_tx <- as_tibble(list_tx)
-if (!is.null(target_region)) {
-  df_tx <- filter(df_tx, seqnames %in% target_region)
+if ("target" %in% target_type) {
+  df_tx <- as_tibble(list_tx)
+  if (!is.null(target_region)) {
+    df_tx <- filter(df_tx, seqnames %in% target_region)
+  }
+  write_csv(df_tx, output_tx)
+} else {
+  write_csv(data.frame(x = "dummy"), output_tx)
 }
-write_csv(df_tx, output_tx)
 
 # export log
 write_lines(

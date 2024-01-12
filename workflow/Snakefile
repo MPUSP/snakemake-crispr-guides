@@ -121,7 +121,7 @@ rule filter_guides:
     conda:
         "envs/design_guides.yml"
     log:
-        path="results/filter_guides/{guideset}_log.txt",
+        path="results/filter_guides/guideRNAs_{guideset}.log",
     script:
         "scripts/filter_guides.R"
 
