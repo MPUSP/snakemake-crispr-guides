@@ -56,6 +56,7 @@ This table lists all parameters that can be used to run the workflow.
 | assembly               | string  | RefSeq ID                                      | `GCF_000006945.2`                 |
 | fasta                  | path    | optional input                                 | `Null`                            |
 | gff                    | path    | optional input                                 | `Null`                            |
+| gff_source_type        | list    | allowed source types in GFF file               | `'RefSeq': 'gene', ...`           |
 | DESIGN_GUIDES          |         |                                                |                                   |
 | target_region          | numeric | use subset of regions for testing              | `["NC_003277.2"]`                 |
 | target_type            | string  | specify targets for guide design (see below)   | `["target", "intergenic", "ntc"]` |
