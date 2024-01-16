@@ -10,6 +10,7 @@ design_guides:
   target_type: ["target", "intergenic", "ntc"]
   tss_window: [-100, 400]
   tiling_window: 1000
+  tiling_min_dist: 0
   circular: False
   canonical: True
   strands: "both"

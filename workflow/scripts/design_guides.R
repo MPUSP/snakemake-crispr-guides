@@ -112,7 +112,12 @@ if ("target" %in% target_type) {
   genome(list_tx_window) <- "custom"
 
   # for intergenic regions: remove all guides that target within transcripts
-  index_intergenic <- findOverlaps(list_guides, list_tx_window, ignore.strand = TRUE)
+  list_total_window <- trim(resize(
+    list_tx_window,
+    width = width(list_tx_window) + (tiling_min_dist*2),
+    fix = "center"
+  ))
+  index_intergenic <- findOverlaps(list_guides, list_total_window, ignore.strand = TRUE)
   list_intergenic <- list_guides[-index_intergenic@from]
 
   # select only guides whose PAM overlaps with the TSS window

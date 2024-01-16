@@ -184,6 +184,7 @@ This table lists all parameters that can be used to run the workflow.
 | target_type            | string  | specify targets for guide design (see below)   | `["target", "intergenic", "ntc"]` |
 | tss_window             | numeric | upstream/downstream window around TSS          | `[0, 500]`                        |
 | tiling_window          | numeric | window size for intergenic regions             | `1000`                            |
+| tiling_min_dist        | numeric | min distance between TSS and intergenic region | `0`                               |
 | circular               | logical | is the genome circular?                        | `False`                           |
 | canonical              | logical | only canonical PAM sites are included          | `True`                            |
 | strands                | string  | target `coding`, `template` or `both`          | `both`                            |
