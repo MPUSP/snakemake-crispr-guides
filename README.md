@@ -1,9 +1,11 @@
 # snakemake-crispr-guides
 
 ![Platform](https://img.shields.io/badge/platform-all-green)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-brightgreen.svg)](https://snakemake.github.io)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-green.svg)](https://snakemake.github.io)
 [![GitHub actions status](https://github.com/MPUSP/snakemake-crispr-guides/workflows/Tests/badge.svg?branch=main)](https://github.com/MPUSP/snakemake-crispr-guides/actions?query=branch%3Amain+workflow%3ATests)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
+[![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog)
 
 ---
 
@@ -152,10 +154,16 @@ Before running the entire workflow, you can perform a dry run using:
 snakemake --dry-run
 ```
 
-To run the complete workflow with test files, execute the following command. The definition of the number of compute cores is mandatory.
+To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
 ```
 snakemake --cores 10 --use-conda
+```
+
+To run the workflow with **`singularity`**, run:
+
+```
+snakemake --cores 10 --use-singularity --use-conda
 ```
 
 To supply a custom config file and/or use options that override the defaults, run the workflow like this:

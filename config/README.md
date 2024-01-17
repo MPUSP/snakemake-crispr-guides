@@ -30,10 +30,16 @@ Before running the entire workflow, you can perform a dry run using:
 snakemake --dry-run
 ```
 
-To run the complete workflow with test files, execute the following command. The definition of the number of compute cores is mandatory.
+To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
 ```
 snakemake --cores 10 --use-conda
+```
+
+To run the workflow with **`singularity`**, run:
+
+```
+snakemake --cores 10 --use-singularity --use-conda
 ```
 
 To supply a custom config file and/or use options that override the defaults, run the workflow like this:

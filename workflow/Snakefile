@@ -14,9 +14,13 @@
 include: "rules/common.smk"
 
 
-# load and print configuration
+# load configuration
 # -----------------------------------------------------
 configfile: "config/config.yml"
+
+
+# container definition (optional)
+container: "oras://ghcr.io/MPUSP/snakemake-crispr-guides:1.1.0"
 
 
 # target rule
