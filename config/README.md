@@ -30,10 +30,16 @@ Before running the entire workflow, you can perform a dry run using:
 snakemake --dry-run
 ```
 
-To run the complete workflow with test files, execute the following command. The definition of the number of compute cores is mandatory.
+To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
 ```
 snakemake --cores 10 --use-conda
+```
+
+To run the workflow with **`singularity`**, run:
+
+```
+snakemake --cores 10 --use-singularity --use-conda
 ```
 
 To supply a custom config file and/or use options that override the defaults, run the workflow like this:
@@ -62,6 +68,7 @@ This table lists all parameters that can be used to run the workflow.
 | target_type            | string  | specify targets for guide design (see below)   | `["target", "intergenic", "ntc"]` |
 | tss_window             | numeric | upstream/downstream window around TSS          | `[0, 500]`                        |
 | tiling_window          | numeric | window size for intergenic regions             | `1000`                            |
+| tiling_min_dist        | numeric | min distance between TSS and intergenic region | `0`                               |
 | circular               | logical | is the genome circular?                        | `False`                           |
 | canonical              | logical | only canonical PAM sites are included          | `True`                            |
 | strands                | string  | target `coding`, `template` or `both`          | `both`                            |
