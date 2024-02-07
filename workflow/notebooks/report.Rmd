@@ -67,6 +67,7 @@ target_type <- snakemake@config$design_guides$target_type
 tss_window <- snakemake@config$design_guides$tss_window
 tiling_window <- snakemake@config$design_guides$tiling_window
 n_examples <- snakemake@config$report$show_examples
+show_genomic_range <- snakemake@config$report$show_genomic_range
 
 # custom ggplot2 theme that is reused for all later plots
 custom_colors <- c("#E7298A", "#66A61E", "#E6AB02", "#7570B3", "#B3B3B3", "#1B9E77", "#D95F02", "#A6761D")
@@ -101,7 +102,7 @@ list_fontpars <- list(face = "plain", size = 14)
 # default figure size
 figwidth <- 7.0
 figheight <- 4.5
-figheight2 <- 1 + (n_examples * 0.75)
+figheight2 <- 1.1 + (n_examples * 0.75)
 
 # function to export an image as svg and png
 save_plot <- function(pl, path = "../figures/", width = 6, height = 6) {
@@ -141,9 +142,18 @@ Only the head of the table is shown (first 10 rows).
 *NOTE: tables are only rendered in HTML output but not PDF.*
 
 ```{r, echo = FALSE}
+input_tx <- snakemake@input$list_tx
+list_tx <- read_csv(input_tx, show_col_types = FALSE)
+
 for (tg in target_type) {
   input_file <- paste0("results/filter_guides/guideRNAs_", tg, ".csv")
   assign(paste0("df_", tg), read_csv(input_file, show_col_types = FALSE))
+}
+
+if ("df_intergenic" %in% ls()) {
+  figheight3 <- 1.1 + (length(unique(df_intergenic$seqnames)) * 0.75)
+} else {
+  figheight3 <- figheight2
 }
 ```
 
@@ -458,7 +468,7 @@ for (tg in target_type) {
   if (tg == "intergenic") {
     titletext <- "Distribution of all guide RNAs over the tiling windows"
     df_guides <- df_guides %>%
-      mutate(dist_to_tss = start - (tiling_window * (tx_window - 1)))
+      mutate(dist_to_tss = start - tiling_window * tx_window)
   }
   if (tg == "target") {
     titletext <- "Distribution of all guide RNAs over the TSS window"
@@ -519,90 +529,91 @@ print("No data with guide RNAs for no-target controls available.")
 - The number of example genes/regions is controlled by parameter `show_examples` in the config file
 
 ```{r, echo = FALSE}
-# function to draw guide RNAs
-draw_guide_location <- function(df, n_examples) {
-  df <- filter(df, tx_name %in% unique(df$tx_name)[1:n_examples])
-  if ("tss_strand" %in% colnames(df)) {
-    df %>%
-      mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
-        factor(., unique(.))) %>%
-      mutate(
-        xstart = case_when(
-          tss_strand == "+" & strand == "+" ~ start - tss_pos,
-          tss_strand == "+" & strand == "-" ~ end - tss_pos,
-          tss_strand == "-" & strand == "-" ~ -1 * (end - tss_pos),
-          tss_strand == "-" & strand == "+" ~ -1 * (start - tss_pos),
-        ),
-        xend = case_when(
-          tss_strand == "+" & strand == "+" ~ end - tss_pos,
-          tss_strand == "+" & strand == "-" ~ start - tss_pos,
-          tss_strand == "-" & strand == "-" ~ -1 * (start - tss_pos),
-          tss_strand == "-" & strand == "+" ~ -1 * (end - tss_pos),
-        ),
-        y = ifelse(strand == tss_strand, 0.25, -0.25)
-      ) %>%
-      ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
-      geom_segment(
-        x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
-        linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
-      ) +
-      geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
-        linewidth = 1.33, color = grey(0.3), lineend = "square", linejoin = "mitre", arrow = arrow(
-          angle = 30, length = unit(0.02, "inches"),
-          type = "closed"
-        )
-      ) +
-      geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
-        linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
-          angle = 30, length = unit(0.01, "inches"),
-          type = "closed"
-        )
-      ) +
-      facet_wrap(~tx_name, ncol = 1) +
-      coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
-      labs(
-        x = "distance to TSS [nt]", y = "",
-        title = paste0("Guide RNA location in TSS window, for the first ", n_examples, " genes"),
-        subtitle = paste0(
-          "Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
-          "Note that genes on the '-' strand are shown as reverse-complement"
-        )
-      ) +
-      custom_theme(legend.position = 0) +
-      scale_color_manual(values = custom_colors[1:2]) +
-      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-  } else {
-    # for no-gene targeting guides, the situation is much simpler
-    df %>%
-      mutate(
-        start = start - (tiling_window * (tx_window - 1)),
-        end = end - (tiling_window * (tx_window - 1)),
-        xstart = ifelse(strand == "+", start, end),
-        xend = ifelse(strand == "+", end, start),
-        y = ifelse(strand == "+", 0.25, -0.25)
-      ) %>%
-      ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
-      geom_segment(
-        x = 0, y = 0, xend = tiling_window, yend = 0,
-        linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
-      ) +
-      geom_segment(aes(color = strand),
-        linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
-          angle = 30, length = unit(0.01, "inches"),
-          type = "closed"
-        )
-      ) +
-      facet_wrap(~tx_name, ncol = 1) +
-      coord_cartesian(ylim = c(-0.5, 0.5), xlim = c(0, tiling_window)) +
-      labs(
-        x = "position in tile [nt]", y = "",
-        title = paste0("Guide RNA location in genomic tiles, for the first ", n_examples, " tiles"),
-        subtitle = "Colored arrows: guide RNAs, gray line: genomic window."
-      ) +
-      custom_theme(legend.position = 0) +
-      scale_color_manual(values = custom_colors[1:2]) +
-      theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
-  }
+# function to draw guide RNAs for genes/targets
+draw_guide_target <- function(df, n_examples) {
+  df %>%
+    filter(tx_name %in% unique(df$tx_name)[1:n_examples]) %>%
+    mutate(tx_name = paste0(tx_name, " (", tss_strand, ")") %>%
+      factor(., unique(.))) %>%
+    mutate(
+      xstart = case_when(
+        tss_strand == "+" & strand == "+" ~ start - tss_pos,
+        tss_strand == "+" & strand == "-" ~ end - tss_pos,
+        tss_strand == "-" & strand == "-" ~ -1 * (end - tss_pos),
+        tss_strand == "-" & strand == "+" ~ -1 * (start - tss_pos),
+      ),
+      xend = case_when(
+        tss_strand == "+" & strand == "+" ~ end - tss_pos,
+        tss_strand == "+" & strand == "-" ~ start - tss_pos,
+        tss_strand == "-" & strand == "-" ~ -1 * (start - tss_pos),
+        tss_strand == "-" & strand == "+" ~ -1 * (end - tss_pos),
+      ),
+      y = ifelse(strand == tss_strand, 0.25, -0.25)
+    ) %>%
+    ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
+    geom_segment(
+      x = tss_window[1], y = 0, xend = tss_window[2], yend = 0,
+      linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
+    ) +
+    geom_segment(aes(x = 0, y = 0, xend = tx_width, yend = 0),
+      linewidth = 1.33, color = grey(0.3), lineend = "square", linejoin = "mitre", arrow = arrow(
+        angle = 30, length = unit(0.02, "inches"),
+        type = "closed"
+      )
+    ) +
+    geom_segment(aes(color = ifelse(strand == tss_strand, "+", "-")),
+      linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
+        angle = 30, length = unit(0.01, "inches"),
+        type = "closed"
+      )
+    ) +
+    facet_wrap(~tx_name, ncol = 1) +
+    coord_cartesian(ylim = c(-0.5, 0.5), xlim = tss_window) +
+    labs(
+      x = "distance to TSS [nt]", y = "",
+      title = paste0("Guide RNA location in TSS window, for the first ", n_examples, " genes"),
+      subtitle = paste0(
+        "Colored arrows: guide RNAs, gray line: TSS window, black arrow: transcript.\n",
+        "Note that genes on the '-' strand are shown as reverse-complement"
+      )
+    ) +
+    custom_theme(legend.position = 0) +
+    scale_color_manual(values = custom_colors[1:2]) +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+}
+
+# for no-gene targeting guides, we plot an overview about the genomic region(s)
+draw_guide_intergenic <- function(
+    df, n_examples, show_genomic_range = c(0, 50000)) {
+  df %>%
+    filter(seqnames %in% unique(df$seqnames)[1:n_examples]) %>%
+    mutate(
+      xstart = ifelse(strand == "+", start, end),
+      xend = ifelse(strand == "+", end, start),
+      y = ifelse(strand == "+", 0.25, -0.25)
+    ) %>%
+    ggplot(aes(x = xstart, y = y, xend = xend, yend = y)) +
+    geom_segment(
+      data = list_tx,
+      aes(x = start, y = ifelse(strand == "+", 0.125, -0.125), xend = end, yend = ifelse(strand == "+", 0.125, -0.125)),
+      linewidth = 2, lineend = "square", linejoin = "mitre", color = grey(0.7)
+    ) +
+    geom_segment(aes(color = strand),
+      linewidth = 1.5, lineend = "square", linejoin = "mitre", arrow = arrow(
+        angle = 30, length = unit(0.01, "inches"),
+        type = "closed"
+      )
+    ) +
+    facet_wrap(~seqnames, ncol = 1) +
+    coord_cartesian(ylim = c(-0.5, 0.5), xlim = show_genomic_range) +
+    labs(
+      x = "position [nt]", y = "",
+      title = paste0("Guide RNA location per chromosome (max. ", n_examples, "shown)"),
+      subtitle = "Colored arrows: guide RNAs, gray lines: annotated genes."
+    ) +
+    custom_theme(legend.position = 0) +
+    scale_color_manual(values = custom_colors[1:2]) +
+    theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
 ```
 
@@ -610,7 +621,7 @@ draw_guide_location <- function(df, n_examples) {
 
 ```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
 if ("target" %in% target_type) {
-  draw_guide_location(df_target, n_examples)
+  draw_guide_target(df_target, n_examples)
 } else {
   print("No data with guide RNAs targeting genes etc available.")
 }
@@ -618,9 +629,9 @@ if ("target" %in% target_type) {
 
 ### Intergenic regions {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight3}
 if ("intergenic" %in% target_type) {
-  draw_guide_location(df_intergenic, n_examples)
+  draw_guide_intergenic(df_intergenic, n_examples, show_genomic_range)
 } else {
   print("No data with guide RNAs targeting intergenic regions available.")
 }
@@ -628,7 +639,7 @@ if ("intergenic" %in% target_type) {
 
 ### No-target controls (NTC) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight2}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
 print("No data with guide RNAs for no-target controls available.")
 ```
 

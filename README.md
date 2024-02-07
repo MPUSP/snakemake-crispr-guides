@@ -216,6 +216,7 @@ This table lists all parameters that can be used to run the workflow.
 | export_as_gff          | logical | export result table also as `.gff` file        | `False`                           |
 | REPORT                 |         |                                                |                                   |
 | show_examples          | numeric | number of genes to show guide position         | `10`                              |
+| show_genomic_range     | numeric | genome start and end pos to show tiling guides | `[0, 50000]`                      |
 
 ### Target type
 

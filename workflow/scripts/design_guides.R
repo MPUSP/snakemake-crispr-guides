@@ -182,11 +182,11 @@ if ("intergenic" %in% target_type) {
   # a similar procedure for benchmarking intergenic guides is applied as
   # as for targets (e.g. genes)
   # first, to filter intergenic regions by score later on, we apply
-  # a tiling approach: guides are grouped into bins of 1000 nt width
+  # a tiling approach: guides are grouped into bins of for example 1000 nt width
   # for later filtering
   list_intergenic$tx_window <- as_tibble(list_intergenic) %>%
     group_by(seqnames) %>%
-    mutate(tx_window = cut_interval(start, length = tiling_window, labels = FALSE)) %>%
+    mutate(tx_window = floor(start / tiling_window)) %>%
     pull(tx_window)
   list_intergenic$tx_name <- with(
     list_intergenic,

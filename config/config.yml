@@ -37,3 +37,4 @@ filter_guides:
 
 report:
   show_examples: 20
+  show_genomic_range: [0, 50000]

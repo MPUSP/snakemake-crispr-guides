@@ -138,6 +138,7 @@ rule report_html:
             "results/filter_guides/guideRNAs_{guideset}.csv",
             guideset=config["design_guides"]["target_type"],
         ),
+        list_tx=rules.design_guides.output.list_tx,
     params:
         config["report"],
     output:
