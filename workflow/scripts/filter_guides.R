@@ -56,14 +56,18 @@ if (strands != "both") {
   if (strands == "coding") {
     if (target_type == "target") {
       filter_strand <- strand(list_guides) != list_guides$tss_strand
-    } else {
+    } else if (target_type == "intergenic") {
       filter_strand <- strand(list_guides) == "+"
+    } else if (target_type == "ntc") {
+      filter_strand <- rep(TRUE, length(list_guides))
     }
   } else if (strands == "template") {
     if (target_type == "target") {
       filter_strand <- strand(list_guides) == list_guides$tss_strand
-    } else {
+    } else if (target_type == "intergenic") {
       filter_strand <- strand(list_guides) == "-"
+    } else if (target_type == "ntc") {
+      filter_strand <- rep(TRUE, length(list_guides))
     }
   } else {
     stop("parameter 'strands' must be one of 'coding', 'template', or 'both'")
@@ -278,6 +282,14 @@ if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
       threeprime_linker = threeprime_linker,
       seq_with_linkers = paste0(fiveprime_linker, protospacer, threeprime_linker)
     )
+}
+
+# check if guides remain, otherwise throw warning
+if (!nrow(df_guides)) {
+  warn_no_guides <- "the final list of guide RNAs after filtering is 0, omitting export."
+  messages <- append(messages, warn_no_guides)
+  warning(warn_no_guides)
+  export_as_gff <- FALSE
 }
 
 # export results as CSV table and GFF file (optional)
