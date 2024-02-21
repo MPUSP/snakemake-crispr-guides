@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.1.0...v1.2.0) (2024-02-21)
+
+
+### Features
+
+* added possibility to run with singularity container ([9d4598e](https://github.com/MPUSP/snakemake-crispr-guides/commit/9d4598ea1fb21ff262250d961da8efd23de96a46))
+* option to add padding between CDS and intergenic region, closes [#25](https://github.com/MPUSP/snakemake-crispr-guides/issues/25) ([de3f8bf](https://github.com/MPUSP/snakemake-crispr-guides/commit/de3f8bfd551b4bd960648baed3e86cc87235b7fd))
+
+
+### Bug Fixes
+
+* added .vscode ([d4a15e0](https://github.com/MPUSP/snakemake-crispr-guides/commit/d4a15e0698e93c608831fefd7de6cd650736591d))
+* bug in export of NTC guides when all are filtered out ([bf97758](https://github.com/MPUSP/snakemake-crispr-guides/commit/bf97758a440ac7c31db21ecd8678ad2289e160c8))
+* overhauled plotting of intergenic regions, closes [#28](https://github.com/MPUSP/snakemake-crispr-guides/issues/28) ([da7135c](https://github.com/MPUSP/snakemake-crispr-guides/commit/da7135cc0d92376e69047343280106a388fb9d44))
+* updated container, bumped version ([cc9dcf9](https://github.com/MPUSP/snakemake-crispr-guides/commit/cc9dcf92f3201cb3d52cb4a08d969e5a1ab591d8))
+
 ## [1.1.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.0.0...v1.1.0) (2024-01-12)
 
 
