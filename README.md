@@ -27,6 +27,8 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
     - [Strand specificity](#strand-specificity)
   - [Output](#output)
   - [Authors](#authors)
+  - [License](#license)
+  - [Contributions](#contributions)
   - [References](#references)
 
 
@@ -312,6 +314,22 @@ The workflow generates the following output from its modules:
 - Affiliation: [Max-Planck-Unit for the Science of Pathogens](https://www.mpusp.mpg.de/) (MPUSP), Berlin, Germany
 - Visit the MPUSP github page at https://github.com/MPUSP for info on this workflow and other projects
 - Visit the author's github page at https://github.com/m-jahn for info on other projects
+
+## License
+
+The code in this repository is published with the [MIT](https://choosealicense.com/licenses/mit/) license, that means:
+
+- You are free to use this software for scientific or commercial purposes
+- You are free to copy, distribute, and modify the software
+- On the condition that the license must be included in all instances of this software
+- The software is provided "as is", without any warranty for its use
+- All external software obtained by installation of this software is licensed by its own terms and is not covered by this license
+
+## Contributions
+
+- Contributions to this package are welcome!
+- Please get in touch on github by [filing a new issue with your suggestion](https://github.com/MPUSP/snakemake-crispr-guides/issues)
+- After initial discussion, you are welcome to submit your pull request
 
 ## References
 
