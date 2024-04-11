@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.2.0...v1.3.0) (2024-04-11)
+
+
+### Features
+
+* changed license to MIT, closes [#30](https://github.com/MPUSP/snakemake-crispr-guides/issues/30) ([c1627fb](https://github.com/MPUSP/snakemake-crispr-guides/commit/c1627fb059252a07b2ce506a50be910e202c3dae))
+
 ## [1.2.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.1.0...v1.2.0) (2024-02-21)
 
 
