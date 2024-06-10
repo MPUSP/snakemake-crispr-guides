@@ -16,7 +16,7 @@ suppressPackageStartupMessages({
 
 # CONFIGURATION
 # ------------------------------
-source("workflow/scripts/utilities.R")
+source(paste0(snakemake@scriptdir, "/utilities.R"))
 sm_params <- snakemake@params[[1]]
 max_cores <- snakemake@params[[2]]
 for (param in names(sm_params)) {

@@ -577,7 +577,7 @@ draw_guide_target <- function(df, n_examples) {
         "Note that genes on the '-' strand are shown as reverse-complement"
       )
     ) +
-    custom_theme(legend.position = 0) +
+    custom_theme(legend.position = "none") +
     scale_color_manual(values = custom_colors[1:2]) +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
@@ -611,7 +611,7 @@ draw_guide_intergenic <- function(
       title = paste0("Guide RNA location per chromosome (max. ", n_examples, "shown)"),
       subtitle = "Colored arrows: guide RNAs, gray lines: annotated genes."
     ) +
-    custom_theme(legend.position = 0) +
+    custom_theme(legend.position = "none") +
     scale_color_manual(values = custom_colors[1:2]) +
     theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 }
