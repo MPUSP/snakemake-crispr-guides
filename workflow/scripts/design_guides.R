@@ -114,7 +114,7 @@ if ("target" %in% target_type) {
   # for intergenic regions: remove all guides that target within transcripts
   list_total_window <- trim(resize(
     list_tx_window,
-    width = width(list_tx_window) + (tiling_min_dist*2),
+    width = width(list_tx_window) + (tiling_min_dist * 2),
     fix = "center"
   ))
   index_intergenic <- findOverlaps(list_guides, list_total_window, ignore.strand = TRUE)
@@ -169,6 +169,12 @@ if ("target" %in% target_type) {
 
   # add information on possible restriction sites
   if (!is.null(restriction_sites)) {
+    if (is.list(restriction_sites)) {
+      restriction_sites <- unlist(restriction_sites)
+    }
+    if (is.null(names(restriction_sites))) {
+      names(restriction_sites) <- paste0("enz", seq_along(restriction_sites))
+    }
     list_target <- addRestrictionEnzymes(list_target, patterns = restriction_sites, includeDefault = FALSE)
   }
 

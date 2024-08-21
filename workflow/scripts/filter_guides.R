@@ -141,6 +141,16 @@ messages <- append(messages, paste0(
   " guide RNAs with a bad seed sequence"
 ))
 
+# filter by resctriction sites
+filter_restriction <- list_guides@elementMetadata$enzymeAnnotation %>%
+  as.data.frame() %>%
+  dplyr::select(-c(1, 2)) %>%
+  apply(1, function(x) !any(x))
+messages <- append(messages, paste0(
+  "Removed ", sum(!filter_restriction),
+  " guide RNAs matching a restriction site"
+))
+
 # apply filters
 filter_by_all <- filter_strand &
   filter_gc_low &
@@ -149,7 +159,8 @@ filter_by_all <- filter_strand &
   filter_startg &
   filter_offtargets &
   filter_offtarget_scores &
-  filter_badseeds
+  filter_badseeds &
+  filter_restriction
 list_guides <- list_guides[filter_by_all]
 
 
@@ -164,13 +175,16 @@ if (target_type != "ntc") {
 
   # this loop filters guides iteratively until no overlapping guides remain
   guides_filtered <- filter_overlaps(list_guides)
+  round_counter <- 1
   while (length(guides_filtered) > 0) {
     messages <- append(messages, paste0(
       "Removed ", length(guides_filtered),
-      " guide RNAs overlapping with better ones"
+      " guide RNAs overlapping with better ones",
+      " (round ", round_counter, ")"
     ))
     list_guides <- list_guides[-guides_filtered]
     guides_filtered <- filter_overlaps(list_guides)
+    round_counter <- round_counter + 1
   }
 
   # filter duplicated guides (only when "filter_multi_targets == FALSE")
@@ -269,6 +283,7 @@ df_guides <- list_guides %>%
   as_tibble() %>%
   dplyr::select(!any_of(c("tssAnnotation"))) %>%
   mutate(
+    enzymeAnnotation = FALSE,
     width = spacer_length,
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
