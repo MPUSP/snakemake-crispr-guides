@@ -608,7 +608,11 @@ draw_guide_intergenic <- function(
     coord_cartesian(ylim = c(-0.5, 0.5), xlim = show_genomic_range) +
     labs(
       x = "position [nt]", y = "",
-      title = paste0("Guide RNA location per chromosome (max. ", n_examples, "shown)"),
+      title = paste0(
+        "Guide RNA location per chromosome (max ",
+        n_examples,
+        " chromosomes, first 50 kb)"
+      ),
       subtitle = "Colored arrows: guide RNAs, gray lines: annotated genes."
     ) +
     custom_theme(legend.position = "none") +
