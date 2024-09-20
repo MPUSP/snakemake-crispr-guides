@@ -69,7 +69,7 @@ If you want to contribute, report issues, or suggest features, please get in tou
 
 ### Snakemake
 
-Step 1: Install snakemake with `conda`, `mamba`, `micromamba` (or any another `conda` flavor). This step generates a new conda environment called `snakemake-crispr-guides`, which will be used for all further installations.
+Step 1: Install snakemake with `conda`, `mamba`, `micromamba` (or any another `conda` flavor). This step generates a new conda environment called `snakemake-crispr-guides`, which will be used to install all other dependencies.
 
 ```
 conda create -c conda-forge -c bioconda -n snakemake-crispr-guides snakemake
@@ -96,33 +96,7 @@ sudo apt install snakemake
 
 ### Additional tools
 
-**Important note:**
-
-All other dependencies for the workflow are **automatically pulled as `conda` environments** by snakemake, when running the workflow with the `--use-conda` parameter (recommended).
-
-In case the workflow should be executed **without automatically built `conda` environments**, the packages need to be installed manually.
-
-
-**crisprVerse (Bioconductor)**
-
-This will install R and all required dependencies of R- and Bioconductor-packages.
-
-```bash
-conda install -c bioconda bioconductor-crisprverse
-```
-
-In case a package is missing, update packages and (re-) install conventional R packages from within R:
-
-```r
-update.packages()
-install.packages("BiocManager")
-```
-
-For Bioconductor packages, use for example:
-
-```r
-BiocManager::install("GenomeInfoDbData")
-```
+All other dependencies for the workflow are **automatically pulled as `conda` environments** by snakemake, when running the workflow with the `--use-conda` or `--use-singularity` parameters (recommended). In case the workflow should be executed **without automatically built `conda` environments**, the packages listed in `workflow/envs/` need to be installed manually.
 
 ## Running the workflow
 
@@ -159,13 +133,13 @@ snakemake --dry-run
 To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
 ```
-snakemake --cores 10 --use-conda
+snakemake --cores 10 --use-conda --directory .test
 ```
 
 To run the workflow with **`singularity`**, run:
 
 ```
-snakemake --cores 10 --use-singularity --use-conda
+snakemake --cores 10 --use-singularity --use-conda --directory .test
 ```
 
 To supply a custom config file and/or use options that override the defaults, run the workflow like this:
