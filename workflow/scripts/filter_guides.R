@@ -12,6 +12,7 @@ suppressPackageStartupMessages({
 
 # CONFIGURATION
 # ------------------------------
+save(snakemake, file = "sm.Rdata")
 source(paste0(snakemake@scriptdir, "/utilities.R"))
 sm_params <- snakemake@params[[1]]
 max_cores <- snakemake@params[[2]]
@@ -24,6 +25,7 @@ strands <- snakemake@config$design_guides$strands
 bad_seeds <- snakemake@config$design_guides$bad_seeds
 score_methods <- snakemake@config$design_guides$score_methods
 score_weights <- snakemake@config$design_guides$score_weights
+restriction_sites <- snakemake@config$design_guides$restriction_sites
 input_file <- snakemake@input$guideset
 input_tx <- snakemake@input$list_tx
 output_csv <- snakemake@output$guideset_csv
@@ -142,14 +144,18 @@ messages <- append(messages, paste0(
 ))
 
 # filter by resctriction sites
-filter_restriction <- list_guides@elementMetadata$enzymeAnnotation %>%
-  as.data.frame() %>%
-  dplyr::select(-c(1, 2)) %>%
-  apply(1, function(x) !any(x))
-messages <- append(messages, paste0(
-  "Removed ", sum(!filter_restriction),
-  " guide RNAs matching a restriction site"
-))
+if (!is.null(restriction_sites)) {
+  filter_restriction <- list_guides@elementMetadata$enzymeAnnotation %>%
+    as.data.frame() %>%
+    dplyr::select(-c(1, 2)) %>%
+    apply(1, function(x) !any(x))
+  messages <- append(messages, paste0(
+    "Removed ", sum(!filter_restriction),
+    " guide RNAs matching a restriction site"
+  ))
+} else {
+  filter_restriction <- rep(TRUE, length(list_guides))
+}
 
 # apply filters
 filter_by_all <- filter_strand &
