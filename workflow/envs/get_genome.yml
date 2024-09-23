@@ -1,7 +1,6 @@
 name: get_genome
 channels:
   - conda-forge
-  - defaults
   - bioconda
 dependencies:
   - python=3.9
