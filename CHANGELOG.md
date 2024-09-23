@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.3.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.2.0...v1.3.0) (2024-09-23)
+
+
+### Features
+
+* changed license to MIT, closes [#30](https://github.com/MPUSP/snakemake-crispr-guides/issues/30) ([c1627fb](https://github.com/MPUSP/snakemake-crispr-guides/commit/c1627fb059252a07b2ce506a50be910e202c3dae))
+* minor updates to README ([516a728](https://github.com/MPUSP/snakemake-crispr-guides/commit/516a728c70af8e7c001851d6e10fafb85b00be88))
+
+
+### Bug Fixes
+
+* bug when restriction sites is NULL ([d26fc02](https://github.com/MPUSP/snakemake-crispr-guides/commit/d26fc02b8384528373aad866434571225ea02512))
+* bump container version for next release ([d893c6b](https://github.com/MPUSP/snakemake-crispr-guides/commit/d893c6be7f7315646b835139756d68d5c58d9bba))
+* handling restriction sites, closes [#36](https://github.com/MPUSP/snakemake-crispr-guides/issues/36) ([675747d](https://github.com/MPUSP/snakemake-crispr-guides/commit/675747d76d980f01514fb8d420dfb3312a12ca29))
+* minor issues, closes [#34](https://github.com/MPUSP/snakemake-crispr-guides/issues/34) ([8b7b5bb](https://github.com/MPUSP/snakemake-crispr-guides/commit/8b7b5bbf2da92c1733cf77eb35a90b68c5344a52))
+* removed conda default channel from envs, closes [#38](https://github.com/MPUSP/snakemake-crispr-guides/issues/38) ([0362a0b](https://github.com/MPUSP/snakemake-crispr-guides/commit/0362a0bea66e1e38bdd698f489e2f7abdf27df70))
+
 ## [1.2.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.1.0...v1.2.0) (2024-02-21)
 
 
