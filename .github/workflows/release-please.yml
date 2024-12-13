@@ -3,17 +3,14 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
-
 name: release-please
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
+      - uses: GoogleCloudPlatform/release-please-action@v2
+        id: release
         with:
           release-type: go # just keep a changelog, no version anywhere outside of git tags
-          package-name: snakemake-crispr-guides
+          package-name: <repo>
