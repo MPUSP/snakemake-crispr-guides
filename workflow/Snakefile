@@ -27,7 +27,6 @@ container: "oras://ghcr.io/MPUSP/snakemake-crispr-guides:1.3.0"
 # -----------------------------------------------------
 rule all:
     input:
-        "results/versions/log_env.txt",
         "results/module_logs/log.txt",
 
 
