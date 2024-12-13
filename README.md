@@ -264,10 +264,9 @@ The workflow generates the following output from its modules:
 <details markdown="1">
 <summary>filter_guides</summary>
 
-- `guideRNAs_target.csv/gff`: Table with all remaining guide RNAs targeting genes after filtering
-- `guideRNAs_intergenic.csv/gff`: Table with all remaining guide RNAs targeting intergenic regions after filtering
-- `guideRNAs_ntc.csv/gff`: GuideSet with all quality filtered non-targeting control guide RNAs
-
+- `guideRNAs_target.csv (.gff) (.fasta)`: Table with all remaining guide RNAs targeting genes after filtering
+- `guideRNAs_intergenic.csv (.gff) (.fasta)`: Table with all remaining guide RNAs targeting intergenic regions after filtering
+- `guideRNAs_ntc.csv (.gff) (.fasta)`: GuideSet with all quality filtered non-targeting control guide RNAs
 - `guideRNAs_target_failed.csv`: Table with genes/targets where no guide RNAs were designed. Typical reasons for failure are very short target sites, or overlapping annotation with other genes/targets such that candidate guide RNAs would target multiple annotated genes.
 - `<target>_log.txt`: Log file for filtering the respective target type
 

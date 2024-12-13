@@ -12,8 +12,6 @@ suppressPackageStartupMessages({
 
 # CONFIGURATION
 # ------------------------------
-save(snakemake, file = "sm.Rdata")
-source(paste0(snakemake@scriptdir, "/utilities.R"))
 sm_params <- snakemake@params[[1]]
 max_cores <- snakemake@params[[2]]
 for (param in names(sm_params)) {
@@ -29,8 +27,6 @@ restriction_sites <- snakemake@config$design_guides$restriction_sites
 input_file <- snakemake@input$guideset
 input_tx <- snakemake@input$list_tx
 output_csv <- snakemake@output$guideset_csv
-output_gff <- snakemake@output$guideset_gff
-
 
 # STAGE 1 : FILE PREPARATION
 # ------------------------------
@@ -42,7 +38,66 @@ list_guides <- get(paste0("list_", target_type))
 list_tx <- read_csv(input_tx, show_col_types = FALSE)
 
 
-# STAGE 2 : FILTER GUIDES BY PROPERTY
+# STAGE 2 : HELPER FUNCTIONS
+# -----------------------------------
+# reduce overlap: from each set of overlapping guides,
+# select the worst one by lowest mean score and remove it
+filter_overlaps <- function(guideset, guide_length = spacer_length) {
+  index_overlap <- findOverlaps(guideset,
+    maxgap = spacer_length,
+    drop.self = TRUE, drop.redundant = TRUE
+  ) %>%
+    as.list() %>%
+    lapply(function(x) {
+      x[which.min(guideset$score_all[x])]
+    }) %>%
+    unlist() %>%
+    {
+      .[!duplicated(.)]
+    }
+  index_overlap
+}
+
+# function to export guide tables as GFF file
+export_gff <- function(
+    df, filename, feature = "sgRNA", source = "snakemake-crispr-guides") {
+  gr <- makeGRangesFromDataFrame(df,
+    seqnames.field = "seqnames",
+    keep.extra.columns = TRUE
+  )
+  gr$type <- feature
+  gr$ID <- gr$group_name
+  gr$Parent <- NA
+  rtracklayer::export(
+    gr, filename,
+    version = "3",
+    source = source
+  )
+}
+
+# function to export main result as FASTA file
+export_fasta <- function(
+    df, filename, feature = "sgRNA") {
+  if (!"tx_name" %in% colnames(df)) {
+    df$tx_name <- "none"
+  }
+  df_fasta <- df %>%
+    mutate(fasta_id = paste0(
+      ">", group_name, " ",
+      seqnames, " ", start, "..", end,
+      " (", strand, ")",
+      " target: ", tx_name,
+      " feature: ", feature
+    ))
+  stopifnot(nrow(df) == nrow(df_fasta))
+  df_fasta %>%
+    mutate(fasta_id = paste(fasta_id, protospacer, sep = "\n")) %>%
+    pull(fasta_id) %>%
+    write_lines(filename)
+}
+
+
+# STAGE 3 : FILTER GUIDES BY PROPERTY
 # -----------------------------------
 # guides are filtered on A) hard boundaries
 
@@ -170,14 +225,18 @@ filter_by_all <- filter_strand &
 list_guides <- list_guides[filter_by_all]
 
 
-# STAGE 3 : FILTER GUIDES BY SCORE
+# STAGE 4 : FILTER GUIDES BY SCORE
 # -----------------------------------
 # guides are filtered on B) on-target score/ranking
 # this does not apply for NTC controls
 if (target_type != "ntc") {
   # make composite score (mean of all scores)
-  list_guides$score_all <- list_guides@elementMetadata[paste0("score_", score_methods)] %>%
-    apply(1, weighted.mean, w = score_weights, na.rm = TRUE)
+  if (length(score_methods) != length(score_weights)) {
+    stop("Parameters 'score_methods' and 'score_weights' must have same lengths!")
+  } else {
+    list_guides$score_all <- list_guides@elementMetadata[paste0("score_", score_methods)] %>%
+      apply(1, weighted.mean, w = score_weights, na.rm = TRUE)
+  }
 
   # this loop filters guides iteratively until no overlapping guides remain
   guides_filtered <- filter_overlaps(list_guides)
@@ -258,7 +317,7 @@ messages <- append(messages, paste0(
   "A final list of ", length(list_guides), " guide RNAs was exported"
 ))
 
-# STAGE 4 : DETERMINE FAILURES
+# STAGE 5 : DETERMINE FAILURES
 # ------------------------------
 #
 if (target_type == "target") {
@@ -281,11 +340,10 @@ if (target_type == "target") {
   }
 }
 
-# STAGE 4 : EXPORT RESULTS
+# STAGE 6 : EXPORT RESULTS
 # ------------------------------
 # prepare result table
 df_guides <- list_guides %>%
-  as.data.frame() %>%
   as_tibble() %>%
   dplyr::select(!any_of(c("tssAnnotation"))) %>%
   mutate(
@@ -294,6 +352,13 @@ df_guides <- list_guides %>%
     start = ifelse(strand == "-", start + 1, start - 20),
     end = ifelse(strand == "-", end + 20, end - 1)
   )
+
+# add guide names if they don't exist
+if (!"group_name" %in% colnames(df_guides)) {
+  df_guides <- df_guides %>%
+    mutate(group_name = names(list_guides))
+}
+df_guides <- dplyr::relocate(df_guides, seqnames, group_name)
 
 # add potential linkers on 5' and/or 3' end
 if (!is.null(fiveprime_linker) || !is.null(threeprime_linker)) {
@@ -311,14 +376,26 @@ if (!nrow(df_guides)) {
   messages <- append(messages, warn_no_guides)
   warning(warn_no_guides)
   export_as_gff <- FALSE
+  export_as_fasta <- FALSE
 }
 
-# export results as CSV table and GFF file (optional)
+# export results to CSV table
 write_csv(df_guides, output_csv)
+
+# export results to GFF file (optional)
 if (export_as_gff) {
   export_gff(
     df = df_guides,
-    filename = str_replace(output_gff, ".csv$", ".gff"),
+    filename = str_replace(output_csv, ".csv$", ".gff"),
+    feature = paste0("sgRNA_", target_type)
+  )
+}
+
+# export results to FASTA file (optional)
+if (export_as_fasta) {
+  export_fasta(
+    df = df_guides,
+    filename = str_replace(output_csv, ".csv$", ".fasta"),
     feature = paste0("sgRNA_", target_type)
   )
 }
