@@ -2,7 +2,7 @@
 
 ![Platform](https://img.shields.io/badge/platform-all-green)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-green.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/MPUSP/snakemake-crispr-guides/workflows/Tests/badge.svg?branch=main)](https://github.com/MPUSP/snakemake-crispr-guides/actions?query=branch%3Amain+workflow%3ATests)
+[![GitHub actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog)
