@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.4.0](https://www.github.com/MPUSP/snakemake-crispr-guides/compare/v1.3.0...v1.4.0) (2024-12-16)
+
+
+### Features
+
+* added support for fasta export, moved utility function to main scripts for singularity compatibility, closes [#42](https://www.github.com/MPUSP/snakemake-crispr-guides/issues/42) ([a3d448b](https://www.github.com/MPUSP/snakemake-crispr-guides/commit/a3d448b95e5ceb005163e06643dcf988997d6a72))
+
+
+### Bug Fixes
+
+* slight changes to report structure ([393ce3d](https://www.github.com/MPUSP/snakemake-crispr-guides/commit/393ce3da9565368e23452d7193cee827c56addb6))
+* update for snakemake 8 commands; removed 1 rule failing with singularity; closes [#41](https://www.github.com/MPUSP/snakemake-crispr-guides/issues/41) ([ed4d4c1](https://www.github.com/MPUSP/snakemake-crispr-guides/commit/ed4d4c13bd946152a6814ad0a17d536f9e247721))
+* update GH actions to latest versions ([cdc47ca](https://www.github.com/MPUSP/snakemake-crispr-guides/commit/cdc47ca78fc3c48d7caa7cbf74bbed9e2e156e3d))
+* updated GH actions status badge ([b18aea3](https://www.github.com/MPUSP/snakemake-crispr-guides/commit/b18aea310dbcdb4e00f2e454f88927c640fe8fa6))
+
 ## [1.3.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.2.0...v1.3.0) (2024-09-23)
 
 
