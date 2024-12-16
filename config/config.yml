@@ -3,7 +3,13 @@ get_genome:
   assembly: "GCF_000006945.2"
   fasta: Null
   gff: Null
-  gff_source_type: ['RefSeq': 'gene', 'RefSeq': 'pseudogene', 'RefSeq': 'CDS', 'Protein Homology': 'CDS']
+  gff_source_type:
+    [
+      "RefSeq": "gene",
+      "RefSeq": "pseudogene",
+      "RefSeq": "CDS",
+      "Protein Homology": "CDS",
+    ]
 
 design_guides:
   target_region: ["NC_003277.2"]
@@ -17,9 +23,8 @@ design_guides:
   spacer_length: 20
   guide_aligner: "bowtie"
   crispr_enzyme: "SpCas9"
-  score_methods:
-    ["ruleset1", "ruleset3", "crisprater", "crisprscan", "tssdist", "genrich"]
-  score_weights: [1, 1, 1, 1, 1, 1]
+  score_methods: ["ruleset1", "crisprater", "crisprscan", "tssdist", "genrich"]
+  score_weights: [1, 1, 1, 1, 1]
   restriction_sites: Null
   bad_seeds: ["ACCCA", "ATACT", "TGGAA"]
   no_target_controls: 100

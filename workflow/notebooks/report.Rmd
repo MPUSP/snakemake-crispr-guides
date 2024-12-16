@@ -124,15 +124,7 @@ save_plot <- function(pl, path = "../figures/", width = 6, height = 6) {
 
 ## Configuration
 
-Show parameters that were used for guide RNA prediction.
-The displayed parameters are taken from the pipelines `config.yml` file.
-
-```{r, echo = FALSE}
-# show all parameters for pipeline
-list_config <- read_lines("config/config.yml")
-list_config <- gsub("\"", "", list_config)
-print(list_config)
-```
+All options that were used to run this workflow are listed at [the end of this report](#workflow-options).
 
 ## Result tables {.tabset}
 
@@ -287,26 +279,26 @@ for (tg in target_type) {
       geom_col(color = "white", fill = custom_colors[1]) +
       geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
       labs(x = "strand", y = "count", title = "Guides per strand") +
-      custom_theme(),
+      custom_theme(aspect.ratio = 1),
     df_guides %>%
       count(width) %>%
       ggplot(aes(x = factor(width), y = n, label = n)) +
       geom_col(color = "white", fill = custom_colors[1]) +
       geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
       labs(x = "width", y = "count", title = "Width distribution of guides") +
-      custom_theme(),
+      custom_theme(aspect.ratio = 1),
     df_guides %>%
       count(pam) %>%
       ggplot(aes(x = factor(pam), y = n, label = n)) +
       geom_col(color = "white", fill = custom_colors[1]) +
       geom_text(size = 3.5, nudge_y = nrow(df_guides) / 30, color = grey(0.5)) +
       labs(x = "pam", y = "count", title = "PAM sequence of guides") +
-      custom_theme(),
+      custom_theme(aspect.ratio = 1),
     df_guides %>%
       ggplot(aes(x = dist_to_tss)) +
       geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
       labs(x = "distance [nt]", y = "count", title = "Relative distance to TSS") +
-      custom_theme()
+      custom_theme(aspect.ratio = 1)
   )
   assign(paste0("plot_strand_", tg), plot_strand)
 }
@@ -314,7 +306,7 @@ for (tg in target_type) {
 
 ### Targets (genes) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_strand_target" %in% ls()) {
   print(plot_strand_target)
 } else {
@@ -324,7 +316,7 @@ if ("plot_strand_target" %in% ls()) {
 
 ### Intergenic regions {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_strand_intergenic" %in% ls()) {
   print(plot_strand_intergenic)
 } else {
@@ -334,7 +326,7 @@ if ("plot_strand_intergenic" %in% ls()) {
 
 ### No-target controls (NTC) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_strand_ntc" %in% ls()) {
   print(plot_strand_ntc)
 } else {
@@ -364,7 +356,7 @@ for (tg in target_type) {
       geom_histogram(bins = 30, color = "white", fill = custom_colors[1]) +
       labs(x = "score", y = "count", title = "Global distribution of on-target scores") +
       facet_wrap(~score) +
-      custom_theme()
+      custom_theme(aspect.ratio = 1)
 
     assign(paste0("plot_scores_", tg), plot_scores)
   }
@@ -374,7 +366,7 @@ for (tg in target_type) {
 
 ### Targets (genes) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_scores_target" %in% ls()) {
   print(plot_scores_target)
 } else {
@@ -384,7 +376,7 @@ if ("plot_scores_target" %in% ls()) {
 
 ### Intergenic regions {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_scores_intergenic" %in% ls()) {
   print(plot_scores_intergenic)
 } else {
@@ -394,7 +386,7 @@ if ("plot_scores_intergenic" %in% ls()) {
 
 ### No-target controls (NTC) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 print("No data with guide RNAs for no-target controls available.")
 ```
 
@@ -423,7 +415,7 @@ for (tg in target_type) {
         title = "Correlation of scores with each other",
         subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
       ) +
-      custom_theme()
+      custom_theme(aspect.ratio = 1)
 
     assign(paste0("plot_scorecorr_", tg), plot_scorecorr)
   }
@@ -432,7 +424,7 @@ for (tg in target_type) {
 
 ### Targets (genes) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_scorecorr_target" %in% ls()) {
   print(plot_scorecorr_target)
 } else {
@@ -442,7 +434,7 @@ if ("plot_scorecorr_target" %in% ls()) {
 
 ### Intergenic regions {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 if ("plot_scorecorr_intergenic" %in% ls()) {
   print(plot_scorecorr_intergenic)
 } else {
@@ -452,7 +444,7 @@ if ("plot_scorecorr_intergenic" %in% ls()) {
 
 ### No-target controls (NTC) {-}
 
-```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figheight}
+```{r, echo = FALSE, warning = FALSE, fig.width = figwidth, fig.height = figwidth}
 print("No data with guide RNAs for no-target controls available.")
 ```
 
@@ -649,9 +641,9 @@ print("No data with guide RNAs for no-target controls available.")
 
 ## Guides with multiple targets {.tabset}
 
- - Some guides target several genes/elements within a genome
+ - Some guides target several genes/features within a genome
  - these multi-target guides can be off-targets (not desired)
- - or they can target duplicated genes/element (desired)
+ - or they can target duplicated genes/features (desired)
  - if multi-target guides are to be included or not can be controlled with the `filter_multi_targets` config parameter (default: `TRUE`)
  - this figure gives an overview about the number of multi-target guides, if they were not filtered
 
@@ -761,19 +753,19 @@ if ("target" %in% target_type) {
 
 # About this report
 
-## Pipeline
+## Workflow
 
-This report was automatically generated by the [snakemake-crispr-guides](https://github.com/MPUSP/snakemake-crispr-guides) pipeline.
+This report was automatically generated by the [snakemake-crispr-guides](https://github.com/MPUSP/snakemake-crispr-guides) workflow.
 
-For issues, bugs, and feature requests please use the pipeline's [github page](https://github.com/MPUSP/snakemake-crispr-guides/issues).
+For issues, bugs, and feature requests please use the workflow's [github page](https://github.com/MPUSP/snakemake-crispr-guides/issues).
 
 For all other feedback, contact the author(s):
 
 - Michael Jahn, PhD (author and maintainer): jahn@mpusp.mpg.de
 
-The pipeline is developed at the [Max Planck Unit for the Science of Pathogens](https://www.mpusp.mpg.de/), Berlin, Germany.
+The workflow is developed at the [Max Planck Unit for the Science of Pathogens](https://www.mpusp.mpg.de/), Berlin, Germany.
 
-## Packages used in the pipeline
+## Packages used in the workflow
 
 This list shows the fixed dependencies used as `conda` environment variables within the pipeline.
 
@@ -787,11 +779,23 @@ versions <- read_delim("results/versions/log_packages.txt",
 print(versions, n = Inf)
 ```
 
+## Workflow options
+
+- this list shows all parameters that were used for guide RNA prediction
+- the displayed parameters are taken from the pipelines `config.yml` file.
+
+```{r, echo = FALSE}
+# show all parameters for pipeline
+list_config <- read_lines("config/config.yml")
+list_config <- gsub("\"", "", list_config)
+print(list_config)
+```
+
 ## Data accessability
 
 The following resources were used to generate this report:
 
-- Guide RNA results table: `results/design_guides/guideRNAs_top.csv`
+- guide RNA results table: `results/design_guides/guideRNAs_top.csv`
 - config file: `config/config.yml`
 
 ## Session Info

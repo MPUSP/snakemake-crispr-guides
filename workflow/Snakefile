@@ -27,7 +27,6 @@ container: "oras://ghcr.io/MPUSP/snakemake-crispr-guides:1.3.0"
 # -----------------------------------------------------
 rule all:
     input:
-        "results/versions/log_env.txt",
         "results/module_logs/log.txt",
 
 
@@ -121,7 +120,6 @@ rule filter_guides:
         list_tx=rules.design_guides.output.list_tx,
     output:
         guideset_csv="results/filter_guides/guideRNAs_{guideset}.csv",
-        guideset_gff="results/filter_guides/guideRNAs_{guideset}.gff",
     conda:
         "envs/design_guides.yml"
     log:

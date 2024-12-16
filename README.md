@@ -1,8 +1,8 @@
 # snakemake-crispr-guides
 
 ![Platform](https://img.shields.io/badge/platform-all-green)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥6.3.0-green.svg)](https://snakemake.github.io)
-[![GitHub actions status](https://github.com/MPUSP/snakemake-crispr-guides/workflows/Tests/badge.svg?branch=main)](https://github.com/MPUSP/snakemake-crispr-guides/actions?query=branch%3Amain+workflow%3ATests)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-green.svg)](https://snakemake.github.io)
+[![GitHub actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog)
@@ -16,7 +16,6 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
   - [Workflow overview](#workflow-overview)
   - [Installation](#installation)
     - [Snakemake](#snakemake)
-    - [Additional tools](#additional-tools)
   - [Running the workflow](#running-the-workflow)
     - [Input data](#input-data)
     - [Starting the workflow](#starting-the-workflow)
@@ -71,32 +70,32 @@ If you want to contribute, report issues, or suggest features, please get in tou
 
 Step 1: Install snakemake with `conda`, `mamba`, `micromamba` (or any another `conda` flavor). This step generates a new conda environment called `snakemake-crispr-guides`, which will be used to install all other dependencies.
 
-```
+```bash
 conda create -c conda-forge -c bioconda -n snakemake-crispr-guides snakemake
 ```
 
 Step 2: Activate conda environment with snakemake
 
-```
+```bash
 source /path/to/conda/bin/activate
 conda activate snakemake-crispr-guides
 ```
 
 Alternatively, install `snakemake` using pip:
 
-```
+```bash
 pip install snakemake
 ```
 
 Or install `snakemake` globally from linux archives:
 
-```
+```bash
 sudo apt install snakemake
 ```
 
-### Additional tools
+**Note:**
 
-All other dependencies for the workflow are **automatically pulled as `conda` environments** by snakemake, when running the workflow with the `--use-conda` or `--use-singularity` parameters (recommended). In case the workflow should be executed **without automatically built `conda` environments**, the packages listed in `workflow/envs/` need to be installed manually.
+All other dependencies for the workflow are **automatically pulled as `conda` environments** by snakemake, when running the workflow with the `--use-conda` parameter (recommended).
 
 ## Running the workflow
 
@@ -119,36 +118,35 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 
 To run the workflow from command line, change the working directory.
 
-```
+```bash
 cd /path/to/snakemake-crispr-guides
 ```
 
-Adjust the global and module-specific options in the default config file `config/config.yml`.
+Adjust options in the default config file `config/config.yml`.
 Before running the entire workflow, you can perform a dry run using:
 
-```
+```bash
 snakemake --dry-run
 ```
 
 To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
-```
-snakemake --cores 10 --use-conda --directory .test
-```
-
-To run the workflow with **`singularity`**, run:
-
-```
-snakemake --cores 10 --use-singularity --use-conda --directory .test
+```bash
+snakemake --cores 10 --sdm conda --directory .test
 ```
 
-To supply a custom config file and/or use options that override the defaults, run the workflow like this:
+To run the workflow with **`singularity`** / **`apptainer`**, use:
 
+```bash
+snakemake --cores 10 --sdm conda apptainer --directory .test
 ```
-snakemake --cores 10 --use-conda \
+
+To supply a custom config file and/or use options that override the defaults, use:
+
+```bash
+snakemake --cores 10 --sdm conda \
   --configfile 'config/my_config.yml' \
-  --config \
-  option='input'
+  --config option='input'
 ```
 
 ### Parameters
@@ -189,7 +187,8 @@ This table lists all parameters that can be used to run the workflow.
 | gc_content_range       | numeric | range of allowed GC content                    | `[30, 70]`                        |
 | fiveprime_linker       | string  | optionally add 5' linker to each guide         | `Null`                            |
 | threeprime_linker      | string  | optionally add 3' linker to each guide         | `Null`                            |
-| export_as_gff          | logical | export result table also as `.gff` file        | `False`                           |
+| export_as_gff          | logical | export result table to `.gff` file             | `True`                            |
+| export_as_fasta        | logical | export result table to `.fasta` file           | `True`                            |
 | REPORT                 |         |                                                |                                   |
 | show_examples          | numeric | number of genes to show guide position         | `10`                              |
 | show_genomic_range     | numeric | genome start and end pos to show tiling guides | `[0, 50000]`                      |
@@ -264,10 +263,9 @@ The workflow generates the following output from its modules:
 <details markdown="1">
 <summary>filter_guides</summary>
 
-- `guideRNAs_target.csv/gff`: Table with all remaining guide RNAs targeting genes after filtering
-- `guideRNAs_intergenic.csv/gff`: Table with all remaining guide RNAs targeting intergenic regions after filtering
-- `guideRNAs_ntc.csv/gff`: GuideSet with all quality filtered non-targeting control guide RNAs
-
+- `guideRNAs_target.csv (.gff) (.fasta)`: Table with all remaining guide RNAs targeting genes after filtering
+- `guideRNAs_intergenic.csv (.gff) (.fasta)`: Table with all remaining guide RNAs targeting intergenic regions after filtering
+- `guideRNAs_ntc.csv (.gff) (.fasta)`: GuideSet with all quality filtered non-targeting control guide RNAs
 - `guideRNAs_target_failed.csv`: Table with genes/targets where no guide RNAs were designed. Typical reasons for failure are very short target sites, or overlapping annotation with other genes/targets such that candidate guide RNAs would target multiple annotated genes.
 - `<target>_log.txt`: Log file for filtering the respective target type
 

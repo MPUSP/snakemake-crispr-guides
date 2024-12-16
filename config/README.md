@@ -19,36 +19,35 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 
 To run the workflow from command line, change the working directory.
 
-```
+```bash
 cd /path/to/snakemake-crispr-guides
 ```
 
-Adjust the global and module-specific options in the default config file `config/config.yml`.
+Adjust options in the default config file `config/config.yml`.
 Before running the entire workflow, you can perform a dry run using:
 
-```
+```bash
 snakemake --dry-run
 ```
 
 To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
 
-```
-snakemake --cores 10 --use-conda --directory .test
-```
-
-To run the workflow with **`singularity`**, run:
-
-```
-snakemake --cores 10 --use-singularity --use-conda --directory .test
+```bash
+snakemake --cores 10 --sdm conda --directory .test
 ```
 
-To supply a custom config file and/or use options that override the defaults, run the workflow like this:
+To run the workflow with **`singularity`** / **`apptainer`**, use:
 
+```bash
+snakemake --cores 10 --sdm conda apptainer --directory .test
 ```
-snakemake --cores 10 --use-conda \
+
+To supply a custom config file and/or use options that override the defaults, use:
+
+```bash
+snakemake --cores 10 --sdm conda \
   --configfile 'config/my_config.yml' \
-  --config \
-  option='input'
+  --config option='input'
 ```
 
 ### Parameters
@@ -89,9 +88,11 @@ This table lists all parameters that can be used to run the workflow.
 | gc_content_range       | numeric | range of allowed GC content                    | `[30, 70]`                        |
 | fiveprime_linker       | string  | optionally add 5' linker to each guide         | `Null`                            |
 | threeprime_linker      | string  | optionally add 3' linker to each guide         | `Null`                            |
-| export_as_gff          | logical | export result table also as `.gff` file        | `False`                           |
+| export_as_gff          | logical | export result table to `.gff` file             | `True`                            |
+| export_as_fasta        | logical | export result table to `.fasta` file           | `True`                            |
 | REPORT                 |         |                                                |                                   |
 | show_examples          | numeric | number of genes to show guide position         | `10`                              |
+| show_genomic_range     | numeric | genome start and end pos to show tiling guides | `[0, 50000]`                      |
 
 ### Target type
 
