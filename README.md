@@ -1,11 +1,10 @@
 # snakemake-crispr-guides
 
-![Platform](https://img.shields.io/badge/platform-all-green)
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-green.svg)](https://snakemake.github.io)
 [![GitHub actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
-[![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog)
+[![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/MPUSP/snakemake-crispr-guides.html)
 
 ---
 
@@ -14,11 +13,9 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
 - [snakemake-crispr-guides](#snakemake-crispr-guides)
   - [Usage](#usage)
   - [Workflow overview](#workflow-overview)
-  - [Installation](#installation)
-    - [Snakemake](#snakemake)
+  - [Deployment options](#deployment-options)
   - [Running the workflow](#running-the-workflow)
     - [Input data](#input-data)
-    - [Starting the workflow](#starting-the-workflow)
     - [Parameters](#parameters)
     - [Target type](#target-type)
     - [Off-target scores](#off-target-scores)
@@ -30,10 +27,11 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
   - [Contributions](#contributions)
   - [References](#references)
 
-
 ## Usage
 
-The usage of this workflow is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog/?usage=MPUSP%2Fsnakemake-crispr-guides).
+The usage of this workflow is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/MPUSP/snakemake-crispr-guides.html).
+
+Detailed information about input data and workflow configuration can also be found in the [`config/README.md`](config/README.md).
 
 If you use this workflow in a paper, don't forget to give credits to the author(s) by citing the URL of this (original) repository and its DOI (see above).
 
@@ -42,7 +40,7 @@ If you use this workflow in a paper, don't forget to give credits to the author(
 <!-- include logo-->
 <img src="resources/images/logo.png" align="center" />
 
-----------
+---
 
 This workflow is a best-practice workflow for the automated generation of guide RNAs for CRISPR applications. It's main purpose is to provide a simple, efficient and easy-to-use framework to design thousands of guides simultaneously for CRISPR libraries from as little input as an organism's name/genome ID. For the manual design of single guides, users are instead referred to even simpler web resources such as [Chop-Chop](http://chopchop.cbu.uib.no/), [CRISPick](https://portals.broadinstitute.org/gppx/crispick/public), or [Cas-OFFinder/Cas-Designer](http://www.rgenome.net/cas-designer/).
 
@@ -64,38 +62,32 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
 
 If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
 
-## Installation
+## Deployment options
 
-### Snakemake
-
-Step 1: Install snakemake with `conda`, `mamba`, `micromamba` (or any another `conda` flavor). This step generates a new conda environment called `snakemake-crispr-guides`, which will be used to install all other dependencies.
+To run the workflow from command line, change the working directory.
 
 ```bash
-conda create -c conda-forge -c bioconda -n snakemake-crispr-guides snakemake
+cd path/to/snakemake-crispr-guides
 ```
 
-Step 2: Activate conda environment with snakemake
+Adjust options in the default config file `config/config.yml`.
+Before running the complete workflow, you can perform a dry run using:
 
 ```bash
-source /path/to/conda/bin/activate
-conda activate snakemake-crispr-guides
+snakemake --dry-run
 ```
 
-Alternatively, install `snakemake` using pip:
+To run the workflow with test files using **conda**:
 
 ```bash
-pip install snakemake
+snakemake --cores 2 --sdm conda --directory .test
 ```
 
-Or install `snakemake` globally from linux archives:
+To run the workflow with test files using **apptainer**:
 
 ```bash
-sudo apt install snakemake
+snakemake --cores 2 --sdm conda apptainer --directory .test
 ```
-
-**Note:**
-
-All other dependencies for the workflow are **automatically pulled as `conda` environments** by snakemake, when running the workflow with the `--use-conda` parameter (recommended).
 
 ## Running the workflow
 
@@ -113,41 +105,6 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 - `*.gff` genome annotation must have additional qualifiers `Name=...`, `ID=...`, and `Parent=...` for `CDS`s
 - all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
 - but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
-
-### Starting the workflow
-
-To run the workflow from command line, change the working directory.
-
-```bash
-cd /path/to/snakemake-crispr-guides
-```
-
-Adjust options in the default config file `config/config.yml`.
-Before running the entire workflow, you can perform a dry run using:
-
-```bash
-snakemake --dry-run
-```
-
-To run the complete workflow with test files using **`conda`**, execute the following command. The definition of the number of compute cores is mandatory.
-
-```bash
-snakemake --cores 10 --sdm conda --directory .test
-```
-
-To run the workflow with **`singularity`** / **`apptainer`**, use:
-
-```bash
-snakemake --cores 10 --sdm conda apptainer --directory .test
-```
-
-To supply a custom config file and/or use options that override the defaults, use:
-
-```bash
-snakemake --cores 10 --sdm conda \
-  --configfile 'config/my_config.yml' \
-  --config option='input'
-```
 
 ### Parameters
 
@@ -195,13 +152,13 @@ This table lists all parameters that can be used to run the workflow.
 
 ### Target type
 
-One of the most important options is to specify the *type of target* with the `target_type` parameter. The pipeline can generate up to three different types of guide RNAs:
+One of the most important options is to specify the _type of target_ with the `target_type` parameter. The pipeline can generate up to three different types of guide RNAs:
 
 1. guides for **targets** - these are typically genes, promoters or other annotated genetic elements determined from the supplied GFF file. The pipeline will try to find the best guides by position and score targeting the defined window around the start of the gene/feature (parameter `tss_window`). The number of guides is specified with `filter_best_per_gene`.
 2. guides for **intergenic regions** - for non-annotated regions (or in the absence of any targets), the pipeline attempts to design guide RNAs using a 'tiling' approach. This means that the supplied genome is subdivided into 'tiles' (bins) of width `tiling_window`, and the best guide RNAs per window are selected. The number of guides is specified with `filter_best_per_tile`.
 3. guides **not targeting anything** - this type of guide RNAs is most useful as negative control, in order to gauge the effect of the genetic background on mutant selection without targeting a gene. These guides are random nucleotide sequences with the same length as the target guide RNAs. The no-target control guides are named `NTC_<number>` and exported in a separate table (`results/filter_guides/guideRNAs_ntc.csv`). Some very reduced checks are done for these guides, such as off-target binding. mMst on-target checks are omitted for these guides as they have no defined binding site, strand, or other typical guide properties.
 
-The following figure gives a nice overview about the designed guide RNAs for the different types. The organism that was used is *Salmonella typhimurium*, the example data. *Red*: guides targeting the TSS window of genes. Yellow: guides targeting intergenic regions. *Grey: annotated genes*.
+The following figure gives a nice overview about the designed guide RNAs for the different types. The organism that was used is _Salmonella typhimurium_, the example data. _Red_: guides targeting the TSS window of genes. Yellow: guides targeting intergenic regions. _Grey: annotated genes_.
 
 <!-- include example for guide design -->
 <img src="resources/images/example_genome_1.png" align="center" />
@@ -209,13 +166,13 @@ The following figure gives a nice overview about the designed guide RNAs for the
 ### Off-target scores
 
 The pipeline maps each guide RNA to the target genome and -by default- counts the number of alternative alignments with 1, 2, 3, or 4 mismatches. All guide RNAs that map to any other position including up to 4 allowed mismatches are removed.
-An exception to this rule is made for guides that perfectly match multiple targets when the `filter_multi_targets` is set to `False` (default: `True`). The reasoning behind this rule is that genomes often contain duplicated genes/targets, and the default but sometimes undesired behavior is to remove all guides targeting the two or more duplicates. If set to `False`, these guides will not be removed and duplicated genes will be targeted even if they are located at different sites. 
+An exception to this rule is made for guides that perfectly match multiple targets when the `filter_multi_targets` is set to `False` (default: `True`). The reasoning behind this rule is that genomes often contain duplicated genes/targets, and the default but sometimes undesired behavior is to remove all guides targeting the two or more duplicates. If set to `False`, these guides will not be removed and duplicated genes will be targeted even if they are located at different sites.
 
 ### On-target scores
 
 The list of available on-target scores in the [R crisprScore package](https://github.com/crisprVerse/crisprScore) is larger than the different scores included by default. It is important to note that the computation of some scores does not necessarily make sense for the design of every CRISPR library. For example, several scores were obtained from analysis of Cas9 cutting efficiency in human cell lines. For such scores it is questionable if they are useful for the design of a different type of library, for example a dCas9 CRISPR inhibition library for bacteria.
 
-Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed *via* `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
+Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed _via_ `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
 
 Users can look up all available scores on the [R crisprScore github page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
 
@@ -229,7 +186,6 @@ The default scores are:
 
 <!-- include illustration of guide design -->
 <img src="resources/images/overview_guide_design.svg" align="center" />
-
 
 The strand specificity is important for some CRISPR applications. In contrast to the `crisprDesign` package, functions were added to allow the design of guide RNAs that target either both strands, or just the coding (non-template) strand, or the template strand. This can be defined with the `strands` parameter in the config file.
 
