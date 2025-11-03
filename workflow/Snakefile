@@ -9,7 +9,7 @@ configfile: "config/config.yml"
 
 
 # container definition (optional)
-container: "oras://ghcr.io/MPUSP/snakemake-crispr-guides:1.3.0"
+container: "oras://ghcr.io/mpusp/snakemake-crispr-guides:1.3.0"
 
 
 # target rule
