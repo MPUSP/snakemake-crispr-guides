@@ -41,10 +41,10 @@ rule get_genome:
         database=config["get_genome"]["database"],
         assembly=config["get_genome"]["assembly"],
         gff_source_types=config["get_genome"]["gff_source_type"],
-    message:
-        "parsing genome GFF and FASTA files"
     log:
         path="results/get_genome/log/get_genome.log",
+    message:
+        "parsing genome GFF and FASTA files"
     wrapper:
         "https://raw.githubusercontent.com/MPUSP/mpusp-snakemake-wrappers/refs/heads/main/get_genome"
 
@@ -69,7 +69,6 @@ rule bsgenome:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
     output:
-        path=directory("results/bsgenome"),
         bsgenome="results/bsgenome/bsgenome.RData",
         seqinfo="results/bsgenome/seqinfo.RData",
     conda:
@@ -83,9 +82,6 @@ rule bsgenome:
 
 
 rule design_guides:
-    params:
-        config["design_guides"],
-        max_cores=workflow.cores,
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
@@ -98,6 +94,9 @@ rule design_guides:
             guideset=config["design_guides"]["target_type"],
         ),
         list_tx="results/design_guides/list_tx.csv",
+    params:
+        config["design_guides"],
+        max_cores=workflow.cores,
     conda:
         "envs/design_guides.yml"
     log:

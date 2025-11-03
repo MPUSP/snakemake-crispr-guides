@@ -10,7 +10,7 @@ suppressPackageStartupMessages({
 
 # IMPORT GENOME
 # ------------------------------
-output <- snakemake@output[["path"]]
+output <- str_remove(snakemake@output[["bsgenome"]], "/bsgenome.RData$")
 messages <- c("importing genome sequence")
 genome_fasta <- snakemake@input[["fasta"]]
 genome_gff <- snakemake@input[["gff"]]
@@ -34,7 +34,7 @@ if (!is.na(header_species)) {
   tax_entry <- filter(df_taxonomy, tax_id == taxon_id)
   if (!is.na(tax_entry[1, "genus"])) {
     genome_name <- paste(tax_entry[1, "genus"], tax_entry[1, "species"])
-    messages <- c(messages, paste("found genome name:", genome_name)) 
+    messages <- c(messages, paste("found genome name:", genome_name))
   } else {
     genome_name <- NA
     messages <- c(messages, paste0("the extracted Taxonomy ID '", taxon_id, "' is not valid"))
