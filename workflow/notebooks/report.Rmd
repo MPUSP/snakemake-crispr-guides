@@ -413,7 +413,7 @@ for (tg in target_type) {
       labs(
         x = "", y = "",
         title = "Correlation of scores with each other",
-        subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficent R"
+        subtitle = "Lower triangle: scatter plots, upper triangle: correlation coefficient R"
       ) +
       custom_theme(aspect.ratio = 1)
 
@@ -709,7 +709,7 @@ print("No data with guide RNAs for no-target controls available.")
 - in some cases the design of guides is not possible, for example when:
 - the target (gene) is very short, e.g. below 100 bp, and no PAM site can be found
 - a gene/CDS has no parent transcript (orphan CDS)
-- a CDS is partially or fully overlapping wit another CDS
+- a CDS is partially or fully overlapping with another CDS
 - a gene is duplicated, leading to the removal of multi-target guides (see previous section)
 - the following table and figure shows the targets where no guides were found, if any
 

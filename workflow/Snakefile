@@ -1,14 +1,3 @@
-# ----------------------------------------------------- #
-# A Snakemake workflow for the design of small guide    #
-# RNAs (sgRNAs) for CRISPR applications.                #
-#                                                       #
-# Author: Michael Jahn                                  #
-# Date: 2023-04-04                                      #
-# License: GPL v3 (for all 3rd party tools              #
-# separate licenses may apply)                          #
-# ----------------------------------------------------- #
-
-
 # load rules
 # -----------------------------------------------------
 include: "rules/common.smk"
@@ -20,7 +9,7 @@ configfile: "config/config.yml"
 
 
 # container definition (optional)
-container: "oras://ghcr.io/MPUSP/snakemake-crispr-guides:1.3.0"
+container: "oras://ghcr.io/mpusp/snakemake-crispr-guides:1.3.0"
 
 
 # target rule
@@ -30,28 +19,36 @@ rule all:
         "results/module_logs/log.txt",
 
 
-# module to fetch genome from NCBI or Ensemble
+# workflow rules
 # -----------------------------------------------------
 rule get_genome:
+    input:
+        fasta=lambda wildcards: (
+            config["get_genome"]["fasta"]
+            if config["get_genome"]["database"] == "manual"
+            else []
+        ),
+        gff=lambda wildcards: (
+            config["get_genome"]["gff"]
+            if config["get_genome"]["database"] == "manual"
+            else []
+        ),
+    output:
+        fasta="results/get_genome/genome.fasta",
+        gff="results/get_genome/genome.gff",
+        fai="results/get_genome/genome.fasta.fai",
     params:
         database=config["get_genome"]["database"],
         assembly=config["get_genome"]["assembly"],
-        fasta=config["get_genome"]["fasta"],
-        gff=config["get_genome"]["gff"],
-    output:
-        path=directory("results/get_genome"),
-        fasta="results/get_genome/genome.fasta",
-        gff="results/get_genome/genome.gff",
-    conda:
-        "envs/get_genome.yml"
+        gff_source_types=config["get_genome"]["gff_source_type"],
     log:
-        path="results/get_genome/log.txt",
-    script:
-        "scripts/get_genome.py"
+        path="results/get_genome/log/get_genome.log",
+    message:
+        "parsing genome GFF and FASTA files"
+    wrapper:
+        "https://raw.githubusercontent.com/MPUSP/mpusp-snakemake-wrappers/refs/heads/main/get_genome"
 
 
-# module to build bowtie index
-# -----------------------------------------------------
 rule bowtie_index:
     input:
         rules.get_genome.output.fasta,
@@ -61,34 +58,30 @@ rule bowtie_index:
         "envs/bowtie_index.yml"
     log:
         path="results/bowtie_index/log.txt",
+    message:
+        "build bowtie index"
     shell:
         "bowtie-build {input} {output.path}/index > {log.path} 2>&1"
 
 
-# module to create BSgenome
-# -----------------------------------------------------
 rule bsgenome:
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
     output:
-        path=directory("results/bsgenome"),
         bsgenome="results/bsgenome/bsgenome.RData",
         seqinfo="results/bsgenome/seqinfo.RData",
     conda:
         "envs/bsgenome.yml"
     log:
         path="results/bsgenome/log.txt",
+    message:
+        "create BSgenome"
     script:
         "scripts/create_bsgenome.R"
 
 
-# module to design guide RNAs using R crisprDesign
-# -----------------------------------------------------
 rule design_guides:
-    params:
-        config["design_guides"],
-        max_cores=workflow.cores,
     input:
         fasta=rules.get_genome.output.fasta,
         gff=rules.get_genome.output.gff,
@@ -101,16 +94,19 @@ rule design_guides:
             guideset=config["design_guides"]["target_type"],
         ),
         list_tx="results/design_guides/list_tx.csv",
+    params:
+        config["design_guides"],
+        max_cores=workflow.cores,
     conda:
         "envs/design_guides.yml"
     log:
         path="results/design_guides/log.txt",
+    message:
+        "design guide RNAs using R crisprDesign"
     script:
         "scripts/design_guides.R"
 
 
-# module to design guide RNAs using R crisprDesign
-# -----------------------------------------------------
 rule filter_guides:
     params:
         config["filter_guides"],
@@ -124,12 +120,12 @@ rule filter_guides:
         "envs/design_guides.yml"
     log:
         path="results/filter_guides/guideRNAs_{guideset}.log",
+    message:
+        "filter designed guide RNAs"
     script:
         "scripts/filter_guides.R"
 
 
-# module to visualize guide RNA prediction using R
-# -----------------------------------------------------
 rule report_html:
     input:
         expand(
@@ -145,12 +141,12 @@ rule report_html:
         "envs/report.yml"
     log:
         path="results/report/html_log.txt",
+    message:
+        "visualize guide RNA prediction using R"
     script:
         "notebooks/report.Rmd"
 
 
-# module to convert HTML to PDF output
-# -----------------------------------------------------
 rule report_pdf:
     input:
         html=rules.report_html.output.html,
@@ -160,12 +156,12 @@ rule report_pdf:
         "envs/report.yml"
     log:
         path="results/report/pdf_log.txt",
+    message:
+        "convert HTML to PDF output"
     shell:
         "weasyprint -v {input.html} {output.pdf} &> {log.path}"
 
 
-# module to combine all module log files to single log
-# -----------------------------------------------------
 rule module_logs:
     input:
         rules.get_genome.log.path,
@@ -177,12 +173,12 @@ rule module_logs:
         "envs/basic.yml"
     log:
         path="results/module_logs/log.txt",
+    message:
+        "combine all module log files to single log"
     shell:
         "cat {input} >> {log.path}"
 
 
-# module to fetch software versions from conda envs
-# -----------------------------------------------------
 rule versions:
     input:
         expand(
@@ -195,6 +191,8 @@ rule versions:
         "envs/basic.yml"
     log:
         path="results/versions/log_env.txt",
+    message:
+        "collect software versions from conda envs"
     shell:
         "conda env export > {log.path};"
         "cat {input} >> {output.path}"
