@@ -1,0 +1,46 @@
+name: Deploy Apptainer
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: create dockerfile
+        uses: snakemake/snakemake-github-action@v2
+        with:
+          directory: .
+          snakefile: workflow/Snakefile
+          install-apptainer: true
+          task: containerize
+
+      - name: create apptainer recipe
+        shell: bash -el {0}
+        run: |
+          mamba install -y spython
+          sed -i "2i RUN apt-get update && apt-get install -y curl" Dockerfile
+          spython recipe Dockerfile > apptainer.def
+          sed -i 's/\/environment.yaml\/environment.yaml$/\/environment.yaml/' apptainer.def
+
+      - name: create apptainer image
+        shell: bash -el {0}
+        run: |
+          sudo apt-get install -y uidmap
+          apptainer build --fakeroot apptainer.sif apptainer.def
+
+      - name: authenticate to GHCR
+        run: |
+          echo ${{ secrets.GITHUB_TOKEN }} | apptainer registry login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+
+      - name: push apptainer to GHCR
+        run: apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
+
+      - name: logout from GHCR
+        run: apptainer registry logout
