@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.5.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.4.0...v1.5.0) (2025-11-04)
+
+
+### Features
+
+* github actions workflow to automatically deploy apptainer to ghcr ([86c5a93](https://github.com/MPUSP/snakemake-crispr-guides/commit/86c5a9346eb36fb5333b7094800fdfb0adf0d5b7))
+* minor actions and rules updates ([aac8bc1](https://github.com/MPUSP/snakemake-crispr-guides/commit/aac8bc19bddfb19eb56acde23a56a12213420077))
+
+
+### Bug Fixes
+
+* cores for report ([9ab4cd5](https://github.com/MPUSP/snakemake-crispr-guides/commit/9ab4cd56306a305b4f6387e44c53c59e50f54ca2))
+* enabled pulling of correct container image again ([780489b](https://github.com/MPUSP/snakemake-crispr-guides/commit/780489b514299d4e4cf83538d3cc3b880997beee))
+* missing input for gh actions test ([da5e7e5](https://github.com/MPUSP/snakemake-crispr-guides/commit/da5e7e5b283e03e1aacc91c6ada1eadc3c6ba8de))
+* update github actions ([2912669](https://github.com/MPUSP/snakemake-crispr-guides/commit/2912669b7f9243f06deb00983fb1537d103afcb3))
+* updated rules, replaced 1 with wrapper ([ebdb478](https://github.com/MPUSP/snakemake-crispr-guides/commit/ebdb4785601156e0b9cc51101286bb217e70b1d1))
+
 ## [1.4.0](https://www.github.com/MPUSP/snakemake-crispr-guides/compare/v1.3.0...v1.4.0) (2024-12-16)
 
 
