@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.0...v1.5.1) (2025-11-04)
+
+
+### Bug Fixes
+
+* attempt to trigger apptainer wf ([89a8f2a](https://github.com/MPUSP/snakemake-crispr-guides/commit/89a8f2a942ee5e8737e07c3d94418a5f9497ac7e))
+* attempt to trigger apptainer wf ([fb9dcb1](https://github.com/MPUSP/snakemake-crispr-guides/commit/fb9dcb1d62e224c9e1deddb4e81dfe82d3d945be))
+
 ## [1.5.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.4.0...v1.5.0) (2025-11-04)
 
 
