@@ -10,7 +10,7 @@ on:
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: add apptainer source
-        shell: bash -el {0}
+        shell: bash
         run: |
           sudo add-apt-repository -y ppa:apptainer/ppa
           sudo apt-get update
@@ -29,18 +29,19 @@ jobs:
           directory: .
           snakefile: workflow/Snakefile
           install-apptainer: true
+          args: "--cores 1"
           task: containerize
 
       - name: create apptainer recipe
-        shell: bash -el {0}
+        shell: bash
         run: |
-          mamba install -y spython
+          pip install spython
           sed -i "2i RUN apt-get update && apt-get install -y curl" Dockerfile
           spython recipe Dockerfile > apptainer.def
           sed -i 's/\/environment.yaml\/environment.yaml$/\/environment.yaml/' apptainer.def
 
       - name: create apptainer image
-        shell: bash -el {0}
+        shell: bash
         run: |
           sudo apt-get install -y uidmap
           apptainer build --fakeroot apptainer.sif apptainer.def
@@ -51,7 +52,8 @@ jobs:
 
       - name: push apptainer to GHCR
         run: |
-          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
+          TAG=${{ github.event.release.tag_name || 'test' }}
+          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:$TAG
           apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:latest
 
       - name: logout from GHCR
