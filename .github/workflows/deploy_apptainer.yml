@@ -17,6 +17,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: add apptainer source
+        shell: bash -el {0}
+        run: |
+          sudo add-apt-repository -y ppa:apptainer/ppa
+          sudo apt-get update
+
       - name: create dockerfile
         uses: snakemake/snakemake-github-action@v2
         with:
@@ -44,7 +50,9 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | apptainer registry login -u ${{ github.actor }} --password-stdin oras://ghcr.io
 
       - name: push apptainer to GHCR
-        run: apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
+        run: |
+          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:${{ github.event.release.tag_name }}
+          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:latest
 
       - name: logout from GHCR
         run: apptainer registry logout
