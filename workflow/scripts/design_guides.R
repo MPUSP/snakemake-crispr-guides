@@ -317,7 +317,7 @@ if ("intergenic" %in% target_type) {
 # optionally create a set of random control guides
 # we do a very reduced check of these guides (sequences and off-targets)
 # since all on-target scores don't apply and would produce errors
-if ("ntc" %in% target_type & no_target_controls > 0) {
+if ("ntc" %in% target_type && no_target_controls > 0) {
   list_ntc <- sapply(1:no_target_controls, FUN = function(x) {
     ntc <- sample(x = c("A", "C", "T", "G"), size = spacer_length, replace = TRUE)
     ntc <- paste(ntc, collapse = "")
@@ -338,9 +338,15 @@ if ("ntc" %in% target_type & no_target_controls > 0) {
 
   list_ntc <- addSequenceFeatures(list_ntc)
   list_ntc <- addOffTargetSequences(list_ntc, guide_aligner, max_cores, txdb, genome_dna, genome_index)
-  list_ntc <- suppressWarnings(addOffTargetScores(list_ntc))
-  list_ntc$score_cfd <- with(list_ntc, replace(score_cfd, is.na(score_cfd), 1))
-  list_ntc$score_mit <- with(list_ntc, replace(score_mit, is.na(score_mit), 1))
+  n_offtartets <- which(sapply(list_ntc$alignments, function(x) length(ranges(x)) > 0))
+  if (length(n_offtartets)) {
+    list_ntc <- suppressWarnings(addOffTargetScores(list_ntc))
+    list_ntc$score_cfd <- with(list_ntc, replace(score_cfd, is.na(score_cfd), 1))
+    list_ntc$score_mit <- with(list_ntc, replace(score_mit, is.na(score_mit), 1))
+  } else {
+    list_ntc$score_cfd <- 1
+    list_ntc$score_mit <- 1
+  }
   if (!is.null(restriction_sites)) {
     list_ntc <- addRestrictionEnzymes(list_ntc, patterns = restriction_sites, includeDefault = FALSE)
   }
