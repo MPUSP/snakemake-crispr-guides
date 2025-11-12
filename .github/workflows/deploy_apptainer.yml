@@ -29,6 +29,7 @@ jobs:
           directory: .
           snakefile: workflow/Snakefile
           install-apptainer: true
+          args: "--cores 1"
           task: containerize
 
       - name: create apptainer recipe
