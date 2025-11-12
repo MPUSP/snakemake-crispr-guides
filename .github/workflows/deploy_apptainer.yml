@@ -1,13 +1,16 @@
 name: Deploy Apptainer
 
 on:
-  release:
-    types: [published]
+  workflow_run:
+    workflows: ["release-please"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
