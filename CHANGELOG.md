@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.5.2](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.1...v1.5.2) (2025-11-13)
+
+
+### Bug Fixes
+
+* added apptainer source temporarily, switch to latest tag ([3adb000](https://github.com/MPUSP/snakemake-crispr-guides/commit/3adb000f1bc9242b60df414ed69355ff5c78dddd))
+* added apptainer source temporarily, switch to latest tag ([b2e72a6](https://github.com/MPUSP/snakemake-crispr-guides/commit/b2e72a6ac3173fda6d7f39f3007c20149129b07c))
+* added missing cores option ([65cbe9e](https://github.com/MPUSP/snakemake-crispr-guides/commit/65cbe9e84e534604f2f50e259b773df056730621))
+* added missing cores option ([cfe21bd](https://github.com/MPUSP/snakemake-crispr-guides/commit/cfe21bd0164037aed8bd5497e4aebf5b1cd63833))
+* added write package permission to workflow ([c58ab98](https://github.com/MPUSP/snakemake-crispr-guides/commit/c58ab981fbbb222c1c8af1f6b1808bbb1869b705))
+* added write package permission to workflow ([a147e0b](https://github.com/MPUSP/snakemake-crispr-guides/commit/a147e0b604e61a4b416c0383b0d1d981cc0ec34d))
+* apptainer trigger update ([1e24b24](https://github.com/MPUSP/snakemake-crispr-guides/commit/1e24b24f971ffe32e5de945ea655a3ecda78f222))
+* apptainer trigger update ([541fa62](https://github.com/MPUSP/snakemake-crispr-guides/commit/541fa6241203afa583fb432c203adbaf1eeed355))
+* further modifications to workflow ([9c4d866](https://github.com/MPUSP/snakemake-crispr-guides/commit/9c4d86601fc545efa338d89df1edec69747f0a70))
+* lower case repo name ([db846c7](https://github.com/MPUSP/snakemake-crispr-guides/commit/db846c78dade795182fbb94c5092e381d66190c4))
+* lower case repo name ([cffe59b](https://github.com/MPUSP/snakemake-crispr-guides/commit/cffe59bb43040f5b1c766c3d3a3426f62b7ec10a))
+* prevent failing when no NTC guide has any off targets ([641a578](https://github.com/MPUSP/snakemake-crispr-guides/commit/641a57849d04a7b5d2d940a99612859b2a0b7001))
+* workflow trigger on release and tag ([ff8ef6f](https://github.com/MPUSP/snakemake-crispr-guides/commit/ff8ef6f72176a03875134ba1b747a8c1d415df5e))
+* workflow trigger on release and tag ([4fd3251](https://github.com/MPUSP/snakemake-crispr-guides/commit/4fd3251a3ac67e84b4d49b3474a28e9471806471))
+
 ## [1.5.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.0...v1.5.1) (2025-11-04)
 
 
