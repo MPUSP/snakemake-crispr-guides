@@ -53,8 +53,9 @@ jobs:
       - name: push apptainer to GHCR
         run: |
           TAG=${{ github.event.release.tag_name || 'test' }}
-          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:$TAG
-          apptainer push apptainer.sif oras://ghcr.io/${{ github.repository }}:latest
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          apptainer push apptainer.sif oras://ghcr.io/${REPO}:${TAG}
+          apptainer push apptainer.sif oras://ghcr.io/${REPO}:latest
 
       - name: logout from GHCR
         run: apptainer registry logout
