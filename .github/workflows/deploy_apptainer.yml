@@ -1,10 +1,8 @@
 name: Deploy Apptainer
 
 on:
-  workflow_run:
-    workflows: ["release-please"]
-    types:
-      - completed
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -13,7 +11,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -55,10 +52,7 @@ jobs:
 
       - name: push apptainer to GHCR
         run: |
-          TAG=${{ github.event.release.tag_name || 'test' }}
+          TAG=$(echo "${GITHUB_REF##*/}" | tr -d 'v')
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           apptainer push apptainer.sif oras://ghcr.io/${REPO}:${TAG}
           apptainer push apptainer.sif oras://ghcr.io/${REPO}:latest
-
-      - name: logout from GHCR
-        run: apptainer registry logout
