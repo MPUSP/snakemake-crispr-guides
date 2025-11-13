@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.3](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.2...v1.5.3) (2025-11-13)
+
+
+### Bug Fixes
+
+* workflow trigger on release and tag ([09f0432](https://github.com/MPUSP/snakemake-crispr-guides/commit/09f0432cf983393ae3bbd55b620784f999599a2f))
+* workflow trigger on release and tag ([5475f41](https://github.com/MPUSP/snakemake-crispr-guides/commit/5475f4152c38ff6f987f031d7d8b7ed0558f8e42))
+
 ## [1.5.2](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.1...v1.5.2) (2025-11-13)
 
 
