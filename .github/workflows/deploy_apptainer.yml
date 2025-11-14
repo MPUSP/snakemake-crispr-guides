@@ -55,7 +55,9 @@ jobs:
 
       - name: push apptainer to GHCR
         run: |
-          TAG=$(jq -r '.workflow_run.head_commit.message // "test"' "$GITHUB_EVENT_PATH")
+          TAG_RAW=$(jq -r '.workflow_run.head_commit.message // "test"' "$GITHUB_EVENT_PATH")
+          TAG=$(echo "${TAG_RAW}" | sed -E 's/^chore\(main\): release v?//')
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          apptainer push apptainer.sif oras://ghcr.io/${REPO}:$(echo "${TAG}" | sed -E 's/^chore\(main\): release v?//')
-          apptainer push apptainer.sif oras://ghcr.io/${REPO}:latest
+          echo "pushing apptainer to: oras://ghcr.io/${REPO}:${TAG}/latest"
+          apptainer push apptainer.sif "oras://ghcr.io/${REPO}:${TAG}"
+          apptainer push apptainer.sif "oras://ghcr.io/${REPO}:latest"
