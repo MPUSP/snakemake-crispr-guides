@@ -1,9 +1,10 @@
 name: Deploy Apptainer
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["release-please"]
+    types:
+      - completed
   workflow_dispatch:
 
 jobs:
@@ -12,6 +13,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: checkout repo
         uses: actions/checkout@v4
@@ -53,7 +55,7 @@ jobs:
 
       - name: push apptainer to GHCR
         run: |
-          TAG=$(echo "${GITHUB_REF##*/}" | tr -d 'v')
+          TAG=$(jq -r '.workflow_run.head_commit.message // "test"' "$GITHUB_EVENT_PATH")
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          apptainer push apptainer.sif oras://ghcr.io/${REPO}:${TAG}
+          apptainer push apptainer.sif oras://ghcr.io/${REPO}:$(echo "${TAG}" | sed -E 's/^chore\(main\): release v?//')
           apptainer push apptainer.sif oras://ghcr.io/${REPO}:latest
