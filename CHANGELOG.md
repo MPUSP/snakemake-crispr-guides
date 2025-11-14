@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.5.4](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.3...v1.5.4) (2025-11-14)
+
+
+### Bug Fixes
+
+* another attempt to trigger on release and extract correct tag ([534c18d](https://github.com/MPUSP/snakemake-crispr-guides/commit/534c18d304af19a42121d9c1a939333b08e82320))
+* another attempt to trigger on release and extract correct tag ([e221191](https://github.com/MPUSP/snakemake-crispr-guides/commit/e221191e3cb5950200a9ff610731a20510ac3e8c))
+* more tag parsing ([0a6572d](https://github.com/MPUSP/snakemake-crispr-guides/commit/0a6572defefe524450862d2d6734e26aa1c49e1e))
+* more tag parsing ([3b36cdb](https://github.com/MPUSP/snakemake-crispr-guides/commit/3b36cdbce7e21ae4fc57b1dbecb040333c604d67))
+* removed pushing a tagged container, only using latest ([0333ebb](https://github.com/MPUSP/snakemake-crispr-guides/commit/0333ebbde1222c2176eb3b273f4f1192663db288))
+* removed pushing a tagged container, only using latest ([e36c6c8](https://github.com/MPUSP/snakemake-crispr-guides/commit/e36c6c8448d26a538eeec4094a50882a5595d9bb))
+
 ## [1.5.3](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.2...v1.5.3) (2025-11-13)
 
 
