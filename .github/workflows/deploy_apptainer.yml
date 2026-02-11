@@ -20,12 +20,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: add apptainer source
-        shell: bash
-        run: |
-          sudo add-apt-repository -y ppa:apptainer/ppa
-          sudo apt-get update
-
       - name: create dockerfile
         uses: snakemake/snakemake-github-action@v2
         with:
@@ -42,6 +36,7 @@ jobs:
           sed -i "2i RUN apt-get update && apt-get install -y curl" Dockerfile
           spython recipe Dockerfile > apptainer.def
           sed -i 's/\/environment.yaml\/environment.yaml$/\/environment.yaml/' apptainer.def
+          sed -i 's/^curl /curl -L /' apptainer.def
 
       - name: create apptainer image
         shell: bash
