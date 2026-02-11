@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.5.5](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.4...v1.5.5) (2026-02-11)
+
+
+### Bug Fixes
+
+* simplify regex ([e3498d5](https://github.com/MPUSP/snakemake-crispr-guides/commit/e3498d513631928b0b56774d707bfbcccd38be41))
+* update actions workflows ([4561ea7](https://github.com/MPUSP/snakemake-crispr-guides/commit/4561ea7f96568ecd0665ce2877d1ea34ef019dab))
+* update actions workflows ([a89b8de](https://github.com/MPUSP/snakemake-crispr-guides/commit/a89b8de4160666e33d96de3203009f04c4008407))
+
 ## [1.5.4](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.3...v1.5.4) (2025-11-14)
 
 
