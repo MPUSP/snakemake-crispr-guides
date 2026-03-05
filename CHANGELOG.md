@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.6.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.5...v1.6.0) (2026-03-05)
+
+
+### Features
+
+* attempt to replace individual GH workflows with reusable ones ([205f6fd](https://github.com/MPUSP/snakemake-crispr-guides/commit/205f6fdb5dd5ae465971cf1368d06be483392b03))
+
+
+### Bug Fixes
+
+* added missing conf option ([55f0845](https://github.com/MPUSP/snakemake-crispr-guides/commit/55f0845aef05c7d066dc7fc5f7ebd2ed38f38340))
+* added missing conf option ([7e37bc8](https://github.com/MPUSP/snakemake-crispr-guides/commit/7e37bc8b9b4a8c8c7dd970bc1705e9bbd9626a34))
+* updated license ([9884a99](https://github.com/MPUSP/snakemake-crispr-guides/commit/9884a99e691cae9aa5c5c1415466f3ac580e1620))
+
 ## [1.5.5](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.4...v1.5.5) (2026-02-11)
 
 
