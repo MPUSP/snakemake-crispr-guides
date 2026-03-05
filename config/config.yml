@@ -39,6 +39,7 @@ filter_guides:
   fiveprime_linker: Null
   threeprime_linker: Null
   export_as_gff: True
+  export_as_fasta: True
 
 report:
   show_examples: 20
