@@ -1,0 +1,15 @@
+on:
+  workflow_run:
+    workflows: ["release-please"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy-apptainer:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    uses: MPUSP/mpusp-github-actions/.github/workflows/deploy-apptainer.yml@main
