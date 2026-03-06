@@ -1,6 +1,8 @@
+name: Deploy Apptainer
+
 on:
   workflow_run:
-    workflows: ["release-please"]
+    workflows: ["Release Please"]
     types:
       - completed
   workflow_dispatch:

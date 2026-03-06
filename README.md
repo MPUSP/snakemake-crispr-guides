@@ -1,7 +1,7 @@
 # snakemake-crispr-guides
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-green.svg)](https://snakemake.github.io)
-[![GitHub actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/main.yml)
+[![GitHub Actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/MPUSP/snakemake-crispr-guides.html)
@@ -31,9 +31,9 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
 
 The usage of this workflow is described in the [Snakemake Workflow Catalog](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/MPUSP/snakemake-crispr-guides.html).
 
-Detailed information about input data and workflow configuration can also be found in the [`config/README.md`](config/README.md).
+Detailed information about input data and workflow configuration can be found in the [`config/README.md`](config/README.md).
 
-If you use this workflow in a paper, don't forget to give credits to the author(s) by citing the URL of this (original) repository and its DOI (see above).
+If you use this workflow in a paper, don't forget to give credits to the author(s) by citing the URL of this repository, the release, and its DOI if available.
 
 ## Workflow overview
 
@@ -60,7 +60,7 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
 6. Return report as HTML and PDF files (`weasyprint`)
 7. Export module logs and versions
 
-If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
+If you want to contribute, report issues, or suggest features, please get in touch on [GitHub](https://github.com/MPUSP/snakemake-crispr-guides).
 
 ## Deployment options
 
@@ -108,47 +108,7 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 
 ### Parameters
 
-This table lists all parameters that can be used to run the workflow.
-
-| parameter              | type    | details                                        | default                           |
-| ---------------------- | ------- | ---------------------------------------------- | --------------------------------- |
-| GET_GENOME             |         |                                                |                                   |
-| database               | string  | one of `ncbi`, `manual`                        | `ncbi`                            |
-| assembly               | string  | RefSeq ID                                      | `GCF_000006945.2`                 |
-| fasta                  | path    | optional input                                 | `Null`                            |
-| gff                    | path    | optional input                                 | `Null`                            |
-| gff_source_type        | list    | allowed source types in GFF file               | `'RefSeq': 'gene', ...`           |
-| DESIGN_GUIDES          |         |                                                |                                   |
-| target_region          | numeric | use subset of regions for testing              | `["NC_003277.2"]`                 |
-| target_type            | string  | specify targets for guide design (see below)   | `["target", "intergenic", "ntc"]` |
-| tss_window             | numeric | upstream/downstream window around TSS          | `[0, 500]`                        |
-| tiling_window          | numeric | window size for intergenic regions             | `1000`                            |
-| tiling_min_dist        | numeric | min distance between TSS and intergenic region | `0`                               |
-| circular               | logical | is the genome circular?                        | `False`                           |
-| canonical              | logical | only canonical PAM sites are included          | `True`                            |
-| strands                | string  | target `coding`, `template` or `both`          | `both`                            |
-| spacer_length          | numeric | desired length of guides                       | `20`                              |
-| guide_aligner          | string  | one of `biostrings`, `bowtie`                  | `biostrings`                      |
-| crispr_enzyme          | string  | CRISPR enzyme ID                               | `SpCas9`                          |
-| score_methods          | string  | see _crisprScore_ package                      | default scores are listed below   |
-| score_weights          | numeric | opt. weights when calculating mean score       | `[1, 1, 1, 1, 1, 1]`              |
-| restriction_sites      | string  | sequences to omit in entire guide              | `Null`                            |
-| bad_seeds              | string  | sequences to omit in seed region               | `["ACCCA", "ATACT", "TGGAA"]`     |
-| no_target_controls     | numeric | number of non targeting guides (neg. controls) | 100                               |
-| FILTER_GUIDES          |         |                                                |                                   |
-| filter_best_per_gene   | numeric | max number of guides to return per gene        | `10`                              |
-| filter_best_per_tile   | numeric | max number of guides to return per ig/tile     | `10`                              |
-| filter_score_threshold | numeric | mean score to use as lower limit               | `Null`                            |
-| filter_multi_targets   | logical | remove guides that perfectly match >1 target   | `True`                            |
-| filter_rna             | logical | remove guides that target e.g. rRNA or tRNA    | `True`                            |
-| gc_content_range       | numeric | range of allowed GC content                    | `[30, 70]`                        |
-| fiveprime_linker       | string  | optionally add 5' linker to each guide         | `Null`                            |
-| threeprime_linker      | string  | optionally add 3' linker to each guide         | `Null`                            |
-| export_as_gff          | logical | export result table to `.gff` file             | `True`                            |
-| export_as_fasta        | logical | export result table to `.fasta` file           | `True`                            |
-| REPORT                 |         |                                                |                                   |
-| show_examples          | numeric | number of genes to show guide position         | `10`                              |
-| show_genomic_range     | numeric | genome start and end pos to show tiling guides | `[0, 50000]`                      |
+Detailed information about input data and workflow configuration can be found in the [`config/README.md`](config/README.md).
 
 ### Target type
 
@@ -174,7 +134,7 @@ The list of available on-target scores in the [R crisprScore package](https://gi
 
 Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed _via_ `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
 
-Users can look up all available scores on the [R crisprScore github page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
+Users can look up all available scores on the [R crisprScore GitHub page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
 
 The default scores are:
 
@@ -238,10 +198,10 @@ The workflow generates the following output from its modules:
 
 ## Authors
 
-- The custom `snakemake`, `R`, `R markdown`, and `python` scripts were written by Michael Jahn, PhD
-- Affiliation: [Max-Planck-Unit for the Science of Pathogens](https://www.mpusp.mpg.de/) (MPUSP), Berlin, Germany
-- Visit the MPUSP github page at https://github.com/MPUSP for info on this workflow and other projects
-- Visit the author's github page at https://github.com/m-jahn for info on other projects
+- Dr. Michael Jahn
+  - Affiliation: [Max-Planck-Unit for the Science of Pathogens](https://www.mpusp.mpg.de/) (MPUSP), Berlin, Germany
+  - ORCID profile: https://orcid.org/0000-0002-3913-153X
+  - GitHub page: https://github.com/m-jahn
 
 ## License
 
@@ -256,7 +216,7 @@ The code in this repository is published with the [MIT](https://choosealicense.c
 ## Contributions
 
 - Contributions to this package are welcome!
-- Please get in touch on github by [filing a new issue with your suggestion](https://github.com/MPUSP/snakemake-crispr-guides/issues)
+- Please get in touch on GitHub by [filing a new issue with your suggestion](https://github.com/MPUSP/snakemake-crispr-guides/issues)
 - After initial discussion, you are welcome to submit your pull request
 
 ## References

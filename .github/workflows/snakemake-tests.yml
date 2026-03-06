@@ -1,3 +1,5 @@
+name: Snakemake Tests
+
 on:
   pull_request:
     branches: [main]
