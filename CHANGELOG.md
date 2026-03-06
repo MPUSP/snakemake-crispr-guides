@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.6.0...v1.6.1) (2026-03-06)
+
+
+### Bug Fixes
+
+* review comments ([42897ec](https://github.com/MPUSP/snakemake-crispr-guides/commit/42897ec6cc2a85033cd62c0065bbc16e2901a281))
+* small changes to README and CI workflows ([b70b467](https://github.com/MPUSP/snakemake-crispr-guides/commit/b70b4673aabcdcf4eb150df34870689653980abb))
+* test names for external CI workflows ([a3310c7](https://github.com/MPUSP/snakemake-crispr-guides/commit/a3310c71b6d3899e076b6d6d81e65ebda1149b07))
+* update Readme ([f673414](https://github.com/MPUSP/snakemake-crispr-guides/commit/f6734143a592dbf6a2945fb3608d61cc8ec34bcd))
+
 ## [1.6.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.5.5...v1.6.0) (2026-03-05)
 
 
