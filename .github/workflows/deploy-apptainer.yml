@@ -1,3 +1,5 @@
+name: Deploy Apptainer
+
 on:
   workflow_run:
     workflows: ["release-please"]
