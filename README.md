@@ -1,7 +1,7 @@
 # snakemake-crispr-guides
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥8.0.0-green.svg)](https://snakemake.github.io)
-[![Github Actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml)
+[![GitHub Actions](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml/badge.svg)](https://github.com/MPUSP/snakemake-crispr-guides/actions/workflows/snakemake-tests.yml)
 [![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1D355C.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![workflow catalog](https://img.shields.io/badge/Snakemake%20workflow%20catalog-darkgreen)](https://snakemake.github.io/snakemake-workflow-catalog/docs/workflows/MPUSP/snakemake-crispr-guides.html)
@@ -60,7 +60,7 @@ The workflow is built using [snakemake](https://snakemake.readthedocs.io/en/stab
 6. Return report as HTML and PDF files (`weasyprint`)
 7. Export module logs and versions
 
-If you want to contribute, report issues, or suggest features, please get in touch on [github](https://github.com/MPUSP/snakemake-crispr-guides).
+If you want to contribute, report issues, or suggest features, please get in touch on [GitHub](https://github.com/MPUSP/snakemake-crispr-guides).
 
 ## Deployment options
 
@@ -134,7 +134,7 @@ The list of available on-target scores in the [R crisprScore package](https://gi
 
 Another good reason to exclude some scores are the computational resources they require. Particularly deep learning-derived scores are calculated by machine learning models that require both a lot of extra resources in terms of disk space (downloaded and installed _via_ `basilisk` and `conda` environments) and processing power (orders of magnitude longer computation time).
 
-Users can look up all available scores on the [R crisprScore github page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
+Users can look up all available scores on the [R crisprScore GitHub page](https://github.com/crisprVerse/crisprScore) and decide which ones should be included. In addition, the default behavior of the pipeline is to compute an average score and select the top N guides based on it. The average score is the _weighted mean_ of all single scores and the `score_weights` can be defined in the `config/config.yml` file. If a score should be excluded from the ranking, it's weight can simply be set to zero.
 
 The default scores are:
 
@@ -201,7 +201,7 @@ The workflow generates the following output from its modules:
 - Dr. Michael Jahn
   - Affiliation: [Max-Planck-Unit for the Science of Pathogens](https://www.mpusp.mpg.de/) (MPUSP), Berlin, Germany
   - ORCID profile: https://orcid.org/0000-0002-3913-153X
-  - github page: https://github.com/m-jahn
+  - GitHub page: https://github.com/m-jahn
 
 ## License
 
@@ -216,7 +216,7 @@ The code in this repository is published with the [MIT](https://choosealicense.c
 ## Contributions
 
 - Contributions to this package are welcome!
-- Please get in touch on github by [filing a new issue with your suggestion](https://github.com/MPUSP/snakemake-crispr-guides/issues)
+- Please get in touch on GitHub by [filing a new issue with your suggestion](https://github.com/MPUSP/snakemake-crispr-guides/issues)
 - After initial discussion, you are welcome to submit your pull request
 
 ## References
