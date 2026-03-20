@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.7.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.6.1...v1.7.0) (2026-03-20)
+
+
+### Features
+
+* added schema; update docs ([9a2a813](https://github.com/MPUSP/snakemake-crispr-guides/commit/9a2a813c975c0822defbd484afbc7d6a0a894d1f))
+* added schema; update docs ([af8aa3c](https://github.com/MPUSP/snakemake-crispr-guides/commit/af8aa3c4210458211ca2efc99b78f5d0f1c691da))
+
 ## [1.6.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.6.0...v1.6.1) (2026-03-06)
 
 
