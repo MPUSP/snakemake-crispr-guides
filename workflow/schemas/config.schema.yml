@@ -1,0 +1,182 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+type: object
+description: configuration options
+properties:
+  get_genome:
+    type: object
+    description: reference genome source and files
+    properties:
+      database:
+        type: ["string", "null"]
+        description: one of ncbi, manual
+        default: ncbi
+      assembly:
+        type: ["string", "null"]
+        description: RefSeq ID
+        default: GCF_000006945.2
+      fasta:
+        type: ["string", "null"]
+        description: optional path to fasta file
+        default: null
+      gff:
+        type: ["string", "null"]
+        description: optional path to gff file
+        default: null
+      gff_source_type:
+        type: ["array", "object"]
+        description: allowed source types in GFF file
+        default:
+          - RefSeq: gene
+          - RefSeq: pseudogene
+          - RefSeq: CDS
+          - Protein Homology: CDS
+
+  design_guides:
+    type: object
+    description: parameters for guide design
+    properties:
+      target_region:
+        type: ["string", "array", "null"]
+        description: use subset of regions for testing
+        default: ["NC_003277.2"]
+        items:
+          type: string
+      target_type:
+        type: ["string", "array"]
+        description: specify targets for guide design
+        default: ["target", "intergenic", "ntc"]
+      tss_window:
+        type: ["array", "null"]
+        description: upstream/downstream window around TSS
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
+        default: [0, 500]
+      tiling_window:
+        type: number
+        description: window size for intergenic regions
+        default: 1000
+      tiling_min_dist:
+        type: number
+        description: minimum distance between TSS and intergenic region
+        default: 0
+      circular:
+        type: boolean
+        description: whether the genome is circular
+        default: false
+      canonical:
+        type: boolean
+        description: only canonical PAM sites are included
+        default: true
+      strands:
+        type: string
+        description: target coding, template, or both
+        default: both
+      spacer_length:
+        type: number
+        description: desired length of guides
+        default: 20
+      guide_aligner:
+        type: string
+        description: one of biostrings, bowtie
+        default: biostrings
+      crispr_enzyme:
+        type: string
+        description: CRISPR enzyme ID
+        default: SpCas9
+      score_methods:
+        type: ["string", "array"]
+        description: scoring methods from crisprScore package
+        default:
+          - ruleset1
+          - crisprater
+          - crisprscan
+          - tssdist
+          - genrich
+      score_weights:
+        type: array
+        items:
+          type: number
+        description: optional weights for calculating weighted mean score; must be same length as score_methods
+        default: [1, 1, 1, 1, 1]
+      restriction_sites:
+        type: ["string", "array", "null"]
+        description: sequences to omit in entire guide
+        default: null
+      bad_seeds:
+        type: ["string", "array"]
+        description: sequences to omit in seed region
+        default: ["ACCCA", "ATACT", "TGGAA"]
+      no_target_controls:
+        type: number
+        description: number of non-targeting guides
+        default: 100
+
+  filter_guides:
+    type: object
+    description: filtering options for designed guides
+    properties:
+      filter_best_per_gene:
+        type: number
+        description: maximum number of guides to return per gene
+        default: 10
+      filter_best_per_tile:
+        type: number
+        description: maximum number of guides to return per intergenic tile
+        default: 10
+      filter_score_threshold:
+        type: ["number", "null"]
+        description: mean score lower threshold
+        default: null
+      filter_multi_targets:
+        type: boolean
+        description: remove guides that perfectly match more than one target
+        default: true
+      filter_rna:
+        type: boolean
+        description: remove guides that target RNA features like rRNA or tRNA
+        default: true
+      gc_content_range:
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
+        description: allowed GC content range
+        default: [30, 70]
+      fiveprime_linker:
+        type: ["string", "null"]
+        description: optional 5prime linker to add to each guide
+        default: null
+      threeprime_linker:
+        type: ["string", "null"]
+        description: optional 3prime linker to add to each guide
+        default: null
+      export_as_gff:
+        type: boolean
+        description: export result table as gff
+        default: true
+      export_as_fasta:
+        type: boolean
+        description: export result table as fasta
+        default: true
+
+  report:
+    type: object
+    description: report generation options
+    properties:
+      show_examples:
+        type: number
+        description: number of genes to show guide positions
+        default: 10
+      show_genomic_range:
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
+        description: genome start and end positions for tiling guide display
+        default: [0, 50000]
+
+required: ["get_genome", "design_guides", "filter_guides", "report"]
