@@ -36,16 +36,22 @@ properties:
     description: parameters for guide design
     properties:
       target_region:
-        type: ["number", "array"]
+        type: ["string", "array", "null"]
         description: use subset of regions for testing
         default: ["NC_003277.2"]
+        items:
+          type: string
       target_type:
         type: ["string", "array"]
         description: specify targets for guide design
         default: ["target", "intergenic", "ntc"]
       tss_window:
-        type: ["number", "array"]
+        type: ["array", "null"]
         description: upstream/downstream window around TSS
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
         default: [0, 500]
       tiling_window:
         type: number
@@ -89,8 +95,10 @@ properties:
           - tssdist
           - genrich
       score_weights:
-        type: ["number", "array"]
-        description: optional weights for calculating weighted mean score
+        type: array
+        items:
+          type: number
+        description: optional weights for calculating weighted mean score; must be same length as score_methods
         default: [1, 1, 1, 1, 1]
       restriction_sites:
         type: ["string", "array", "null"]
@@ -130,7 +138,11 @@ properties:
         description: remove guides that target RNA features like rRNA or tRNA
         default: true
       gc_content_range:
-        type: ["number", "array"]
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
         description: allowed GC content range
         default: [30, 70]
       fiveprime_linker:
@@ -159,7 +171,11 @@ properties:
         description: number of genes to show guide positions
         default: 10
       show_genomic_range:
-        type: ["number", "array"]
+        type: array
+        items:
+          type: number
+        minItems: 2
+        maxItems: 2
         description: genome start and end positions for tiling guide display
         default: [0, 50000]
 
