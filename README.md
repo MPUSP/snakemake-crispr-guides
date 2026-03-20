@@ -16,7 +16,6 @@ A Snakemake workflow for the design of small guide RNAs (sgRNAs) for CRISPR appl
   - [Deployment options](#deployment-options)
   - [Running the workflow](#running-the-workflow)
     - [Input data](#input-data)
-    - [Parameters](#parameters)
     - [Target type](#target-type)
     - [Off-target scores](#off-target-scores)
     - [On-target scores](#on-target-scores)
@@ -105,10 +104,6 @@ Important requirements when using custom `*.fasta` and `*.gff` files:
 - `*.gff` genome annotation must have additional qualifiers `Name=...`, `ID=...`, and `Parent=...` for `CDS`s
 - all chromosomes/regions in the `*.gff` genome annotation must be present in the `*.fasta` sequence
 - but not all sequences in the `*.fasta` file need to have annotated genes in the `*.gff` file
-
-### Parameters
-
-Detailed information about input data and workflow configuration can be found in the [`config/README.md`](config/README.md).
 
 ### Target type
 
