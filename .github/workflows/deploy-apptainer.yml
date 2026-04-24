@@ -14,4 +14,4 @@ permissions:
 jobs:
   deploy-apptainer:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    uses: MPUSP/mpusp-github-actions/.github/workflows/deploy-apptainer.yml@main
+    uses: MPUSP/mpusp-github-actions/.github/workflows/deploy-apptainer.yml@dev
