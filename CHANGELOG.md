@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.7.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.7.0...v1.7.1) (2026-04-27)
+
+
+### Bug Fixes
+
+* reverted deployment action to main ([5617a0d](https://github.com/MPUSP/snakemake-crispr-guides/commit/5617a0d16038cc1de7da01686784bc894aa36277))
+* reverted deployment action to main ([b5fe5e8](https://github.com/MPUSP/snakemake-crispr-guides/commit/b5fe5e8f663b46c4156071beca86c042b8d684f4))
+* test updated apptainer deployment wf ([0aa40e9](https://github.com/MPUSP/snakemake-crispr-guides/commit/0aa40e95e5a2a054a2a6683d910cb0d6534d14cb))
+* test updated apptainer deployment wf ([c7e87a3](https://github.com/MPUSP/snakemake-crispr-guides/commit/c7e87a3f2f17149be857376d82155d4848a2037e))
+
 ## [1.7.0](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.6.1...v1.7.0) (2026-03-20)
 
 
