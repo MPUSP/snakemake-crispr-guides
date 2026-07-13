@@ -2,10 +2,11 @@
 # ------------------------------
 suppressPackageStartupMessages({
   library(tidyverse)
-  library(devtools)
   library(Biostrings)
-  library(GenomicFeatures)
-  library(BSgenome)
+  library(txdbmaker)
+  library(BSgenomeForge)
+  library(GenomeInfoDb)
+  library(GenomeInfoDbData)
 })
 
 # IMPORT GENOME
@@ -76,7 +77,7 @@ if (!is.na(genome_build_tag)) {
 }
 
 # import genome annotation
-quiet_txdb <- quietly(makeTxDbFromGFF)
+quiet_txdb <- quietly(txdbmaker::makeTxDbFromGFF)
 txdb_msg <- quiet_txdb(file = genome_gff)
 txdb <- txdb_msg$result
 messages <- append(messages, paste0("warning: ", txdb_msg$warnings))

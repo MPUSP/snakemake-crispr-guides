@@ -3,11 +3,12 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - r-base 4.3.1
+  - jq=1.8.2
   - r-tidyverse=2.0.0
-  - bioconductor-biostrings=2.68.1
-  - bioconductor-genomicfeatures=1.52.1
-  - bioconductor-crisprbase=1.4.0
-  - bioconductor-crisprdesign=1.2.0
-  - bioconductor-crisprbwa=1.4.0
-  - bioconductor-crisprscore=1.4.0
+  - bioconductor-biostrings=2.78.0
+  - bioconductor-txdbmaker=1.6.2
+  - bioconductor-crisprbase=1.14.0
+  - bioconductor-crisprdesign=1.12.0
+  - bioconductor-crisprbwa=1.14.0
+  - bioconductor-crisprscore=1.14.0
+  - bioconductor-genomeinfodbdata
