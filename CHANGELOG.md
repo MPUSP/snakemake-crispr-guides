@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.7.2](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.7.1...v1.7.2) (2026-07-14)
+
+
+### Bug Fixes
+
+* comments, formatting ([5550a5a](https://github.com/MPUSP/snakemake-crispr-guides/commit/5550a5a7fb9580a5583c9c18ed8ed34fd2849276))
+* container directive and env updates ([827c2a4](https://github.com/MPUSP/snakemake-crispr-guides/commit/827c2a4ff3ee12b9067dd43b3629d04a350ab1e2))
+* container directive and env updates ([d5855f3](https://github.com/MPUSP/snakemake-crispr-guides/commit/d5855f392b2c10b6aa47911b087f92283481bab6))
+
 ## [1.7.1](https://github.com/MPUSP/snakemake-crispr-guides/compare/v1.7.0...v1.7.1) (2026-04-27)
 
 
