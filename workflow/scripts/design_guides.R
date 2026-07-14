@@ -4,8 +4,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
   library(GenomeInfoDbData)
-  library(GenomicRanges)
-  library(GenomicFeatures)
+  library(txdbmaker)
   library(crisprBase)
   library(crisprDesign)
   library(crisprBwa)
@@ -166,7 +165,7 @@ list_guides <- findSpacers(
 # pcocess portion of guides matching supplied TSS windows
 if ("target" %in% target_type) {
   # import genome annotation with chromosome metadata
-  txdb <- makeTxDbFromGFF(
+  txdb <- txdbmaker::makeTxDbFromGFF(
     file = genome_gff,
     organism = unname(genome(seqinfo_genome)[1]),
     chrominfo = seqinfo_genome

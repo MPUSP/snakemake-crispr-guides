@@ -9,7 +9,7 @@ configfile: "config/config.yml"
 
 
 # container definition (optional)
-container: "oras://ghcr.io/mpusp/snakemake-crispr-guides:latest"
+containerized: "oras://ghcr.io/mpusp/snakemake-crispr-guides:latest"
 
 
 # target rule
@@ -37,12 +37,12 @@ rule get_genome:
         fasta="results/get_genome/genome.fasta",
         gff="results/get_genome/genome.gff",
         fai="results/get_genome/genome.fasta.fai",
+    log:
+        path="results/get_genome/log/get_genome.log",
     params:
         database=config["get_genome"]["database"],
         assembly=config["get_genome"]["assembly"],
         gff_source_types=config["get_genome"]["gff_source_type"],
-    log:
-        path="results/get_genome/log/get_genome.log",
     message:
         "parsing genome GFF and FASTA files"
     wrapper:
@@ -54,10 +54,10 @@ rule bowtie_index:
         rules.get_genome.output.fasta,
     output:
         path=directory("results/bowtie_index"),
-    conda:
-        "envs/bowtie_index.yml"
     log:
         path="results/bowtie_index/log.txt",
+    conda:
+        "envs/bowtie_index.yml"
     message:
         "build bowtie index"
     shell:
@@ -71,10 +71,10 @@ rule bsgenome:
     output:
         bsgenome="results/bsgenome/bsgenome.RData",
         seqinfo="results/bsgenome/seqinfo.RData",
-    conda:
-        "envs/bsgenome.yml"
     log:
         path="results/bsgenome/log.txt",
+    conda:
+        "envs/bsgenome.yml"
     message:
         "create BSgenome"
     script:
@@ -94,13 +94,13 @@ rule design_guides:
             guideset=config["design_guides"]["target_type"],
         ),
         list_tx="results/design_guides/list_tx.csv",
+    log:
+        path="results/design_guides/log.txt",
+    conda:
+        "envs/design_guides.yml"
     params:
         config["design_guides"],
         max_cores=workflow.cores,
-    conda:
-        "envs/design_guides.yml"
-    log:
-        path="results/design_guides/log.txt",
     message:
         "design guide RNAs using R crisprDesign"
     script:
@@ -108,18 +108,18 @@ rule design_guides:
 
 
 rule filter_guides:
-    params:
-        config["filter_guides"],
-        max_cores=workflow.cores,
     input:
         guideset="results/design_guides/guideRNAs_{guideset}.RData",
         list_tx=rules.design_guides.output.list_tx,
     output:
         guideset_csv="results/filter_guides/guideRNAs_{guideset}.csv",
-    conda:
-        "envs/design_guides.yml"
     log:
         path="results/filter_guides/guideRNAs_{guideset}.log",
+    conda:
+        "envs/design_guides.yml"
+    params:
+        config["filter_guides"],
+        max_cores=workflow.cores,
     message:
         "filter designed guide RNAs"
     script:
@@ -133,14 +133,14 @@ rule report_html:
             guideset=config["design_guides"]["target_type"],
         ),
         list_tx=rules.design_guides.output.list_tx,
-    params:
-        config["report"],
     output:
         html="results/report/report.html",
-    conda:
-        "envs/report.yml"
     log:
         path="results/report/html_log.txt",
+    conda:
+        "envs/report.yml"
+    params:
+        config["report"],
     message:
         "visualize guide RNA prediction using R"
     script:
@@ -152,10 +152,10 @@ rule report_pdf:
         html=rules.report_html.output.html,
     output:
         pdf="results/report/report.pdf",
-    conda:
-        "envs/report.yml"
     log:
         path="results/report/pdf_log.txt",
+    conda:
+        "envs/report.yml"
     message:
         "convert HTML to PDF output"
     shell:
@@ -169,10 +169,10 @@ rule module_logs:
         rules.design_guides.log.path,
         rules.report_html.log.path,
         rules.report_pdf.log.path,
-    conda:
-        "envs/basic.yml"
     log:
         path="results/module_logs/log.txt",
+    conda:
+        "envs/basic.yml"
     message:
         "combine all module log files to single log"
     shell:
@@ -187,12 +187,11 @@ rule versions:
         ),
     output:
         path="results/versions/log_packages.txt",
-    conda:
-        "envs/basic.yml"
     log:
         path="results/versions/log_env.txt",
+    conda:
+        "envs/basic.yml"
     message:
         "collect software versions from conda envs"
     shell:
-        "conda env export > {log.path};"
-        "cat {input} >> {output.path}"
+        "conda env export > {log.path};" "cat {input} >> {output.path}"
