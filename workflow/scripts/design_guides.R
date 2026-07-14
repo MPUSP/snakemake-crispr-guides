@@ -4,8 +4,6 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
   library(GenomeInfoDbData)
-  library(GenomicRanges)
-  library(GenomicFeatures)
   library(txdbmaker)
   library(crisprBase)
   library(crisprDesign)

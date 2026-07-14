@@ -7,6 +7,7 @@ dependencies:
   - r-tidyverse=2.0.0
   - bioconductor-biostrings=2.78.0
   - bioconductor-txdbmaker
+  - bioconductor-bsgenome=1.78.0
   - bioconductor-bsgenomeforge=1.10.2
   - bioconductor-genomeinfodb=1.46.2
   - bioconductor-genomeinfodbdata=1.2.15

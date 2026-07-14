@@ -4,6 +4,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(Biostrings)
   library(txdbmaker)
+  library(BSgenome)
   library(BSgenomeForge)
   library(GenomeInfoDb)
   library(GenomeInfoDbData)
